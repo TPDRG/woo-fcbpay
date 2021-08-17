@@ -663,31 +663,61 @@ class FCBPayPaymentHelper extends FCBPayPaymentModuleHelper
         $lower = strtolower($paymentType);
         switch ($lower) {
             case 'all':
-                $sdkPayment = TPay_PaymentMethod::ALL;
+                $sdkPayment = "ALL";
                 break;
             case 'credit':
-                $sdkPayment = TPay_PaymentMethod::Credit;
+                $sdkPayment = "CREDIT";
                 break;
-            case 'webatm':
-                $sdkPayment = TPay_PaymentMethod::WebATM;
+            case 'credit_3':
+                $sdkPayment = "CREDIT_3";
                 break;
-            case 'atm':
-                $sdkPayment = TPay_PaymentMethod::ATM;
+			case 'credit_6':
+                $sdkPayment = "credit_6";
                 break;
-            case 'cvs':
-                $sdkPayment = TPay_PaymentMethod::CVS;
+			case 'credit_9':
+                $sdkPayment = "credit_9";
                 break;
-            case 'barcode':
-                $sdkPayment = TPay_PaymentMethod::BARCODE;
+			case 'credit_12':
+                $sdkPayment = "credit_12";
                 break;
-            case 'androidpay':
-                $sdkPayment = TPay_PaymentMethod::AndroidPay;
+			case 'credit_15':
+                $sdkPayment = "credit_15";
                 break;
-            case 'googlepay':
-                $sdkPayment = TPay_PaymentMethod::GooglePay;
+			case 'credit_18':
+                $sdkPayment = "credit_18";
                 break;
-            case 'unionpay':
-                $sdkPayment = 'UnionPay';
+			case 'credit_24':
+                $sdkPayment = "credit_24";
+                break;
+			case 'credit_30':
+                $sdkPayment = "credit_30";
+                break;
+			case 'credit_reward':
+                $sdkPayment = "CREDIT_REWARD";
+                break;
+            case 'union':
+                $sdkPayment = "UNION";
+                break;
+            case 'idp':
+                $sdkPayment = "IDP";
+                break;
+			case 'eatm':
+                $sdkPayment = "EATM";
+                break;
+			case 'atm':
+                $sdkPayment = "ATM";
+                break;
+			case 'cs':
+                $sdkPayment = "CS";
+                break;
+			case 'wechat':
+                $sdkPayment = "WECHAT";
+                break;
+			case 'twpay':
+                $sdkPayment = "TWPAY";
+                break;
+			case 'jkos':
+                $sdkPayment = "JKOS";
                 break;
             default:
                 $sdkPayment = '';

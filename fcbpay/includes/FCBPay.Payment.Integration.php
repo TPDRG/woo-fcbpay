@@ -46,13 +46,13 @@ abstract class TPay_PaymentMethod {
     /**
      * eATM
      */
-    const eATM = 'eATM';
+    const eATM = 'EATM';
 
 
     /**
      * ATM
      */
-    const REG = 'ATM';
+    const REG = 'REG';
 
     /**
      * 超商。
@@ -625,7 +625,9 @@ abstract class ECPay_Aio
     }
 
     protected static function HtmlEncode($target = "_self", $arParameters = array(), $ServiceURL = '', $szCheckMacValue = '', $paymentButton = '') {
-
+		var_dump($arParameters);
+		echo "-----------------------------";
+		var_dump($ServiceURL);
         //生成表單，自動送出
         $szHtml =  '<!DOCTYPE html>';
         $szHtml .= '<html>';
@@ -633,13 +635,13 @@ abstract class ECPay_Aio
         $szHtml .=         '<meta charset="utf-8">';
         $szHtml .=     '</head>';
         $szHtml .=     '<body>';
-        $szHtml .=         "<form id=\"__ecpayForm\" method=\"post\" target=\"{$target}\" action=\"{$ServiceURL}\">";
+        $szHtml .=         "<form id=\"__payForm\" method=\"post\" target=\"{$target}\" action=\"{$ServiceURL}\">";
 
         foreach ($arParameters as $keys => $value) {
-            $szHtml .=         "<input type=\"hidden\" name=\"{$keys}\" value=\"". htmlentities($value) . "\" />";
+            $szHtml .=         "<input type=\"hidden\" name=\"{$keys}\" value=\"". htmlentities(strval($value)) . "\" />";
         }
 
-        $szHtml .=             "<input type=\"hidden\" name=\"CheckMacValue\" value=\"{$szCheckMacValue}\" />";
+        //$szHtml .=             "<input type=\"hidden\" name=\"CheckMacValue\" value=\"{$szCheckMacValue}\" />";
 
         if(!empty($paymentButton))
         {
@@ -650,7 +652,7 @@ abstract class ECPay_Aio
 
         if(empty($paymentButton))
         {
-            $szHtml .=         '<script type="text/javascript">document.getElementById("__ecpayForm").submit();</script>';
+            $szHtml .=         '<script type="text/javascript">document.getElementById("__payForm").submit();</script>';
         }
 
         $szHtml .=     '</body>';
@@ -674,31 +676,25 @@ class ECPay_Send extends ECPay_Aio
         //宣告付款方式物件
         $PaymentMethod    = 'ECPay_'.$arParameters['ChoosePayment'];
         self::$PaymentObj = new $PaymentMethod;
-
         //檢查參數
-        $arParameters = self::$PaymentObj->check_string($arParameters);
-
+        //$arParameters = self::$PaymentObj->check_string($arParameters);
         //檢查商品
-        $arParameters = self::$PaymentObj->check_goods($arParameters);
-
+        //$arParameters = self::$PaymentObj->check_goods($arParameters);
         //檢查各付款方式的額外參數&電子發票參數
-        $arExtend = self::$PaymentObj->check_extend_string($arExtend,$arParameters['InvoiceMark']);
-
+        //$arExtend = self::$PaymentObj->check_extend_string($arExtend,$arParameters['InvoiceMark']);
         //過濾
         $arExtend = self::$PaymentObj->filter_string($arExtend,$arParameters['InvoiceMark']);
-
         //合併共同參數及延伸參數
         return array_merge($arParameters,$arExtend) ;
     }
 
 
     static function CheckOut($target = "_self",$arParameters = array(),$arExtend = array(),$HashKey='',$HashIV='',$ServiceURL=''){
-
         $arParameters = self::process($arParameters,$arExtend);
         //產生檢查碼
-        $szCheckMacValue = ECPay_CheckMacValue::generate($arParameters,$HashKey,$HashIV,$arParameters['EncryptType']);
-
+        //$szCheckMacValue = ECPay_CheckMacValue::generate($arParameters,$HashKey,$HashIV,$arParameters['EncryptType']);
         //生成表單，自動送出
+		$szCheckMacValue = "";
         $szHtml = parent::HtmlEncode($target, $arParameters, $ServiceURL, $szCheckMacValue, '') ;
         echo $szHtml ;
         exit;
