@@ -51,6 +51,8 @@ class FCBPayPaymentModuleHelper
      * @var string Timezone
      */
     private $timezone = 'Asia/Taipei';
+	
+	private $serviceUrl = '';
 
     /**
      * ModuleHelper constructor.
@@ -494,5 +496,14 @@ class FCBPayPaymentModuleHelper
         } else {
             return false;
         }
+    }
+	
+	public function setPayServerUrl($Url = '')
+    {
+        return $this->set('serviceUrl', $Url);
+    }
+	public function getPayServerUrl($Url = '')
+    {
+		return $this->serviceUrl;
     }
 }

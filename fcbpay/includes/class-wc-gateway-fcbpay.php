@@ -56,9 +56,8 @@ class WC_Gateway_FCBPay extends WC_Payment_Gateway
         # Load the helper
         $this->helper = FCBPay_PaymentCommon::getHelper();
         $this->helper->setMerchantId($this->merchant_id);
+		$this->helper->setPayServerUrl($this->pay_server);
         $this->ecpay_test_mode = ($this->helper->isTestMode($this->merchant_id)) ? 'yes' : 'no';
-
-
 
         # Get the payment methods
         $payment_methods = array();

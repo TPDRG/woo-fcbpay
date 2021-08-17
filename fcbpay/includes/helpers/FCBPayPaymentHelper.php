@@ -37,14 +37,6 @@ class FCBPayPaymentHelper extends FCBPayPaymentModuleHelper
     );
 
     /**
-     * @var array Service path
-     */
-    private $functionPaths = array(
-        'checkOut' => '/Cashier/AioCheckOut/V5',
-        'queryTrade' => '/Cashier/QueryTradeInfo/V5',
-    );
-
-    /**
      * @var array API success return code
      */
     private $successCodes = array(
@@ -136,8 +128,6 @@ class FCBPayPaymentHelper extends FCBPayPaymentModuleHelper
         parent::__construct();
         $this->encryptType = ECPay_EncryptType::ENC_SHA256;
         $this->setStageMerchantIds(array('2000132', '2000214'));
-        $this->serviceUrls['prod'] = 'https://payment.'. $this->prefix .'.com.tw';
-        $this->serviceUrls['stage'] = 'https://payment-stage.'. $this->prefix .'.com.tw';
     }
 
     /**
@@ -170,7 +160,7 @@ class FCBPayPaymentHelper extends FCBPayPaymentModuleHelper
         $this->sdk->MerchantID = $this->getMerchantId();
         $this->sdk->HashKey = $inputs['hashKey'];
         $this->sdk->HashIV = $inputs['hashIv'];
-        $this->sdk->ServiceURL = $this->getUrl('checkOut'); // Get Checkout URL
+        $this->sdk->ServiceURL = $this->getPayServerUrl();
         $this->sdk->EncryptType = $this->encryptType;
         $this->sdk->Send['ReturnURL'] = $inputs['returnUrl'];
         $this->sdk->Send['ClientBackURL'] = $this->filterUrl($inputs['clientBackUrl']);
@@ -606,26 +596,6 @@ class FCBPayPaymentHelper extends FCBPayPaymentModuleHelper
                 break;
         }
         return $undefinedMessage;
-    }
-
-    /**
-     * Get AIO URL
-     * @param  string $type URL type
-     * @return string|boolean
-     */
-    private function getUrl($type = '')
-    {
-        if (isset($this->functionPaths[$type]) === false) {
-            return false;
-        }
-
-        $merchantId = $this->getMerchantId();
-        if ($this->isTestMode($merchantId) === true) {
-            $url = $this->serviceUrls['stage'];
-        } else {
-            $url = $this->serviceUrls['prod'];
-        }
-        return $url . $this->functionPaths[$type];
     }
 
     /**
