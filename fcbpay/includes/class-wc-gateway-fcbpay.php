@@ -51,7 +51,6 @@ class WC_Gateway_FCBPay extends WC_Payment_Gateway
         $this->pay_server            = $this->get_option('payServer');
         $this->merchant_id     = $this->get_option('merchant_id');
         $this->hash_key        = $this->get_option('hash_key');
-        $this->ecpay_hash_iv         = '要移除的欄位';
 
         # Load the helper
         $this->helper = FCBPay_PaymentCommon::getHelper();
@@ -91,7 +90,7 @@ class WC_Gateway_FCBPay extends WC_Payment_Gateway
         // 付款結果頁
         add_action('woocommerce_receipt_' . $this->id, array($this, 'receipt_page'));
 
-        // 自訂轉導綠界付款頁
+        // 自訂轉導付款頁
         add_action('fcbpay_redirect_payment_center', array($this, 'fcbpay_redirect_payment_center'));
 
         // 付款回應處理
@@ -700,12 +699,11 @@ class WC_Gateway_FCBPay extends WC_Payment_Gateway
         try {
             # Get the chosen payment and installment
             $notes = $order->get_customer_order_notes();
-            $choose_payment = isset($notes[0]) ? $notes[0]->comment_content : '';
+            $PayType = isset($notes[0]) ? $notes[0]->comment_content : '';
 
             $data = array(
-                'choosePayment'     => $choose_payment,
-                'hashKey'           => $this->hash_key,
-                'hashIv'            => $this->ecpay_hash_iv,
+                'PayType'    		=> $PayType,
+                'hashK'              => $this->hash_key,
                 'returnUrl'         => add_query_arg('wc-api', 'WC_Gateway_FCBPay', home_url('/')),
                 'clientBackUrl'     => $this->get_return_url($order),
                 'orderId'           => $order->get_id(),

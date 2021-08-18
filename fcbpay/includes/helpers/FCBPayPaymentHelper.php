@@ -139,8 +139,8 @@ class FCBPayPaymentHelper extends FCBPayPaymentModuleHelper
     {
         // Filter inputs
         $whiteList = array(
-            'choosePayment',
-            'hashKey',
+            'PayType',
+            'hashK',
             'hashIv',
             'returnUrl',
             'periodReturnURL',
@@ -153,10 +153,14 @@ class FCBPayPaymentHelper extends FCBPayPaymentModuleHelper
             'needExtraPaidInfo',
         );
         $inputs = $this->only($data, $whiteList);
-
-        $paymentType = $inputs['choosePayment'];
+		var_dump($inputs);
+		echo "---------------------------------------------------------------";
+        $paymentType = $inputs['PayType'];
 
         // Set SDK parameters
+		$this->sdk->Send['PlatFormId'] = $this->getMerchantId();
+		$this->sdk->Send['PayType'] = $this->getPaymentMethod($paymentType);
+		
         $this->sdk->MerchantID = $this->getMerchantId();
         $this->sdk->HashKey = $inputs['hashKey'];
         $this->sdk->HashIV = $inputs['hashIv'];
@@ -168,7 +172,7 @@ class FCBPayPaymentHelper extends FCBPayPaymentModuleHelper
         $this->sdk->Send['MerchantTradeDate'] = $this->getDateTime('Y/m/d H:i:s', '');
         $this->sdk->Send['TradeDesc'] = $this->getModuleDescription($inputs['cartName']);
         $this->sdk->Send['TotalAmount'] = $this->getAmount($inputs['total']);
-        $this->sdk->Send['ChoosePayment'] = $this->getPaymentMethod($paymentType);
+        
         $this->sdk->Send['NeedExtraPaidInfo'] = $this->getSdkExtraPaymentInfoOption($inputs['needExtraPaidInfo']);
 
         // Set the product info
@@ -181,7 +185,7 @@ class FCBPayPaymentHelper extends FCBPayPaymentModuleHelper
         );
 
         // Set the extend information
-        switch ($this->sdk->Send['ChoosePayment']) {
+        switch ($this->sdk->Send['PayType']) {
             case $this->getSdkPaymentMethod('credit'):
                 // Do not support UnionPay
                 $this->sdk->SendExtend['UnionPay'] = false;

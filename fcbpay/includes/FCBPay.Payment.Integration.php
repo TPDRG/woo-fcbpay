@@ -468,6 +468,8 @@ class TPaySDK {
 
         $this->PaymentType = 'aio';
         $this->Send = array(
+			"PlatFormId"        => '',
+			"PayType"     => TPay_PaymentMethod::ALL,
             "ReturnURL"         => '',
             "ClientBackURL"     => '',
             "OrderResultURL"    => '',
@@ -476,13 +478,11 @@ class TPaySDK {
             "PaymentType"       => 'aio',
             "TotalAmount"       => '',
             "TradeDesc"         => '',
-            "ChoosePayment"     => TPay_PaymentMethod::ALL,
             "Remark"            => '',
             "ChooseSubPayment"  => ECPay_PaymentMethodItem::None,
             "NeedExtraPaidInfo" => ECPay_ExtraPaymentInfo::No,
             "DeviceSource"      => '',
             "IgnorePayment"     => '',
-            "PlatformID"        => '',
             "InvoiceMark"       => ECPay_InvoiceState::No,
             "Items"             => array(),
             "StoreID"           => '',
@@ -509,7 +509,7 @@ class TPaySDK {
             'MerchantTradeNo' => '',
             'CaptureAMT' => 0,
             'UserRefundAMT' => 0,
-            'PlatformID' => ''
+            'PlatFormId' => ''
         );
 
         $this->TradeNo = array(
@@ -628,6 +628,7 @@ abstract class ECPay_Aio
 		var_dump($arParameters);
 		echo "-----------------------------";
 		var_dump($ServiceURL);
+		return $szHtml;
         //生成表單，自動送出
         $szHtml =  '<!DOCTYPE html>';
         $szHtml .= '<html>';
@@ -673,8 +674,9 @@ class ECPay_Send extends ECPay_Aio
 
     protected static function process($arParameters = array(),$arExtend = array())
     {
+		//待改 kai
         //宣告付款方式物件
-        $PaymentMethod    = 'ECPay_'.$arParameters['ChoosePayment'];
+        $PaymentMethod    = 'ECPay_'.$arParameters['PayType'];
         self::$PaymentObj = new $PaymentMethod;
         //檢查參數
         //$arParameters = self::$PaymentObj->check_string($arParameters);
@@ -1138,8 +1140,8 @@ Abstract class ECPay_Verification
 
         if (sizeof($arErrors)>0) throw new Exception(join('<br>', $arErrors));
 
-        if (!$arParameters['PlatformID']) {
-            unset($arParameters['PlatformID']);
+        if (!$arParameters['PlatFormId']) {
+            unset($arParameters['PlatFormId']);
         }
 
         // 檢查是否支援 IgnorePayment 參數，不支援則移除此參數
