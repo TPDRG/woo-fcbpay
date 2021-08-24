@@ -11,7 +11,7 @@ class FCBPayPaymentHelper extends FCBPayPaymentModuleHelper
     /**
      * @var string SDK class name(required)
      */
-    protected $sdkClassName = 'TPay_Woo_AllInOne';
+    protected $sdkClassName = 'FCBPay_Woo_AllInOne';
 
     /**
      * @var string SDK file path(required)
@@ -77,13 +77,6 @@ class FCBPayPaymentHelper extends FCBPayPaymentModuleHelper
     );
 
     /**
-     * @var array 特約會員才能使用的付款方式
-     */
-    public $ecpayPaymentMethodsSpecial = array(
-
-    );
-
-    /**
      * @var array 是否到期
      */
     public $isExpire = array(
@@ -126,8 +119,6 @@ class FCBPayPaymentHelper extends FCBPayPaymentModuleHelper
     public function __construct()
     {
         parent::__construct();
-        $this->encryptType = ECPay_EncryptType::ENC_SHA256;
-        $this->setStageMerchantIds(array('2000132', '2000214'));
     }
 
     /**
@@ -137,101 +128,54 @@ class FCBPayPaymentHelper extends FCBPayPaymentModuleHelper
      */
     private function checkoutPrepare($data)
     {
-        // Filter inputs
-        $whiteList = array(
-            'PayType',
-            'hashK',
-            'hashIv',
-            'returnUrl',
-            'periodReturnURL',
-            'clientBackUrl',
-            'orderId',
-            'total',
-            'itemName',
-            'cartName',
-            'currency',
-            'needExtraPaidInfo',
-        );
-        $inputs = $this->only($data, $whiteList);
-		var_dump($inputs);
-		echo "---------------------------------------------------------------";
-        $paymentType = $inputs['PayType'];
-
+		$inputs = $data;
         // Set SDK parameters
 		$this->sdk->Send['PlatFormId'] = $this->getMerchantId();
-		$this->sdk->Send['PayType'] = $this->getPaymentMethod($paymentType);
-		
-        $this->sdk->MerchantID = $this->getMerchantId();
-        $this->sdk->HashKey = $inputs['hashKey'];
-        $this->sdk->HashIV = $inputs['hashIv'];
+		$this->sdk->Send['PayType'] = $this->getPaymentMethod($inputs['PayType']);
+		$this->sdk->Send['OrderId'] = $inputs['orderId'];
+		$this->sdk->Send['Amount'] = $this->getAmount($inputs['total']);
+		$this->sdk->Send['CreateTime'] = $this->getDateTime('Y/m/d H:i:s', '');
+		$this->sdk->Send['TransTime'] = $this->getDateTime('Y/m/d H:i:s', '');
+		$this->sdk->Send['ResURL'] = $inputs['returnUrl'];
+        $this->sdk->Send['hashK'] = $inputs['hashK'];
         $this->sdk->ServiceURL = $this->getPayServerUrl();
-        $this->sdk->EncryptType = $this->encryptType;
-        $this->sdk->Send['ReturnURL'] = $inputs['returnUrl'];
-        $this->sdk->Send['ClientBackURL'] = $this->filterUrl($inputs['clientBackUrl']);
-        $this->sdk->Send['MerchantTradeNo'] = $this->setMerchantTradeNo($inputs['orderId']);
-        $this->sdk->Send['MerchantTradeDate'] = $this->getDateTime('Y/m/d H:i:s', '');
-        $this->sdk->Send['TradeDesc'] = $this->getModuleDescription($inputs['cartName']);
-        $this->sdk->Send['TotalAmount'] = $this->getAmount($inputs['total']);
-        
-        $this->sdk->Send['NeedExtraPaidInfo'] = $this->getSdkExtraPaymentInfoOption($inputs['needExtraPaidInfo']);
-
-        // Set the product info
+		
+        //商品明細
+		/*
         $this->sdk->Send['Items'][] = array(
             'Name' => $inputs['itemName'],
-            'Price' => $this->sdk->Send['TotalAmount'],
+            'Price' => $this->sdk->Send['Amount'],
             'Currency'  => $inputs['currency'],
             'Quantity' => 1,
             'URL' => '',
         );
-
-        // Set the extend information
+		*/
+        // 針對支付種類加屬性
         switch ($this->sdk->Send['PayType']) {
-            case $this->getSdkPaymentMethod('credit'):
-                // Do not support UnionPay
-                $this->sdk->SendExtend['UnionPay'] = false;
-
-                // Credit installment parameters
-                $creditParam = $this->getInstallment($paymentType);
-                $creditParamCount = count($creditParam);
-                if ($creditParamCount == 2) {
-                    // 分期付款
-                    $installments = 0;
-                    if (isset($creditParam[1]) === true) {
-                        $installments = $this->getAmount($creditParam[1]);
-                    }
-
-                    $this->sdk->SendExtend['CreditInstallment'] = $installments;
-                    $this->sdk->SendExtend['InstallmentAmount'] = $this->sdk->Send['TotalAmount'];
-                    $this->sdk->SendExtend['Redeem'] = false;
-                } elseif ($creditParamCount == 4) {
-                    // 定期定額
-                    $this->sdk->SendExtend['PeriodAmount'] = $this->sdk->Send['TotalAmount'];
-                    $this->sdk->SendExtend['PeriodType'] = $creditParam[1];
-                    $this->sdk->SendExtend['Frequency'] = $creditParam[2];
-                    $this->sdk->SendExtend['ExecTimes'] = $creditParam[3];
-                    $this->sdk->SendExtend['PeriodReturnURL'] = $inputs['periodReturnURL'];
-                }
+            case "CREDIT":
+				$this->sdk->SendExtend['TransType'] = '1';
+				$this->sdk->SendExtend['TimeoutSecs'] = '60';
+				break;
+			case "CREDIT_3":
+			case "CREDIT_6":
+			case "CREDIT_9":
+			case "CREDIT_12":
+			case "CREDIT_15":
+			case "CREDIT_18":
+			case "CREDIT_24":
+			case "CREDIT_30":
+				$this->sdk->SendExtend['TransType'] = '2';
+				$this->sdk->SendExtend['PeriodNum'] = str_replace("CREDIT_","",$this->sdk->Send['PayType']);
+				$this->sdk->SendExtend['TimeoutSecs'] = '60';
+				$this->sdk->Send['PayType'] = 'CREDIT';
+				break;
+			case "CREDIT_REWARD":
+				$this->sdk->SendExtend['TransType'] = '3';
+				$this->sdk->SendExtend['BonusActionCode'] = $inputs['BonusActionCode'];
+				$this->sdk->SendExtend['TimeoutSecs'] = '60';
+				$this->sdk->Send['PayType'] = 'CREDIT';
                 break;
             case $this->getSdkPaymentMethod('unionpay'):
-                $this->sdk->Send['ChoosePayment'] = 'Credit';
-                $this->sdk->SendExtend['UnionPay'] = true;
-                break;
-            case $this->getSdkPaymentMethod('webatm'):
-            case $this->getSdkPaymentMethod('androidpay'):
-            case $this->getSdkPaymentMethod('googlepay'):
-                break;
-            case $this->getSdkPaymentMethod('atm'):
-                $this->sdk->SendExtend['ExpireDate'] = 3;
-                $this->sdk->SendExtend['PaymentInfoURL'] = $this->sdk->Send['ReturnURL'];
-                break;
-            case $this->getSdkPaymentMethod('cvs'):
-            case $this->getSdkPaymentMethod('barcode'):
-                $this->sdk->SendExtend['Desc_1'] = '';
-                $this->sdk->SendExtend['Desc_2'] = '';
-                $this->sdk->SendExtend['Desc_3'] = '';
-                $this->sdk->SendExtend['Desc_4'] = '';
-                $this->sdk->SendExtend['PaymentInfoURL'] = $this->sdk->Send['ReturnURL'];
-                break;
             default:
                 throw new Exception('Invalid payment method.');
                 break;
@@ -246,7 +190,7 @@ class FCBPayPaymentHelper extends FCBPayPaymentModuleHelper
      */
     public function checkout($data)
     {
-        $this->checkoutPrepare($data);
+		$this->checkoutPrepare($data);
         $this->sdk->CheckOut();
     }
 
@@ -258,6 +202,7 @@ class FCBPayPaymentHelper extends FCBPayPaymentModuleHelper
      */
     public function expiredOrder($data)
     {
+		exit("FCBPayPaymentHelper.php - FCBPayPaymentHelper - expiredOrder");
         // Filter inputs
         $whiteList = array(
             'hashKey'            ,
@@ -296,11 +241,7 @@ class FCBPayPaymentHelper extends FCBPayPaymentModuleHelper
             if ($createDate <= $dateCompare) {
 
                 // 反查綠界訂單記錄API
-                if ($this->isTestMode($this->getMerchantId()) === true) {
-                    $merchantTradeNo = $inputs['stageOrderPrefix'] . $inputs['orderId'];
-                } else {
-                    $merchantTradeNo = $inputs['orderId'];
-                }
+                $merchantTradeNo = $inputs['orderId'];
 
                 $data = array(
                     'hashKey'         => $inputs['hashKey'],
@@ -322,6 +263,7 @@ class FCBPayPaymentHelper extends FCBPayPaymentModuleHelper
      */
     public function getCheckoutForm($data)
     {
+		exit("FCBPayPaymentHelper.php - FCBPayPaymentHelper - getCheckoutForm");
         $this->checkoutPrepare($data);
         return $this->sdk->CheckOutString();
     }
@@ -334,6 +276,7 @@ class FCBPayPaymentHelper extends FCBPayPaymentModuleHelper
      */
     public function getValidFeedback($data)
     {
+		exit("FCBPayPaymentHelper.php - FCBPayPaymentHelper - getValidFeedback");
         $feedback = $this->getFeedback($data); // feedback
         $data['merchantTradeNo'] = $feedback['MerchantTradeNo'];
         $info = $this->getTradeInfo($data); // Trade info
@@ -353,6 +296,7 @@ class FCBPayPaymentHelper extends FCBPayPaymentModuleHelper
      */
     public function getOrderId($merchantTradeNo = '')
     {
+		exit("FCBPayPaymentHelper.php - FCBPayPaymentHelper - getOrderId");
         // Filter inputs
         if (empty($merchantTradeNo) === true) {
             return false;
@@ -360,12 +304,7 @@ class FCBPayPaymentHelper extends FCBPayPaymentModuleHelper
         unset($inputs);
 
         $merchantId = $this->getMerchantId();
-        if ($this->isTestMode($merchantId) === true) {
-            $start = $this->getMerchantOrderPrefixLength();
-            $orderId = substr($merchantTradeNo, $start);
-        } else {
-            $orderId = $merchantTradeNo;
-        }
+        $orderId = $merchantTradeNo;
         return $orderId;
     }
 
@@ -378,6 +317,7 @@ class FCBPayPaymentHelper extends FCBPayPaymentModuleHelper
      */
     public function getResponseState($feedback = array(), $orderInfo = array())
     {
+		exit("FCBPayPaymentHelper.php - FCBPayPaymentHelper - getResponseState");
         // Filter inputs
         $whiteList = array(
             'PaymentType',
@@ -478,6 +418,7 @@ class FCBPayPaymentHelper extends FCBPayPaymentModuleHelper
      */
     public function getPaymentSuccessComment($pattern = '', $feedback = array())
     {
+		exit("FCBPayPaymentHelper.php - FCBPayPaymentHelper - getPaymentSuccessComment");
         // Filter inputs
         if (empty($pattern) === true) {
             return false;
@@ -514,6 +455,7 @@ class FCBPayPaymentHelper extends FCBPayPaymentModuleHelper
      */
     public function getFailedComment($pattern = '', $error = '')
     {
+		exit("FCBPayPaymentHelper.php - FCBPayPaymentHelper - getFailedComment");
         if (empty($pattern) === true) {
             return false;
         }
@@ -532,6 +474,7 @@ class FCBPayPaymentHelper extends FCBPayPaymentModuleHelper
      */
     public function getFeedbackPaymentType($paymentType = '')
     {
+		exit("FCBPayPaymentHelper.php - FCBPayPaymentHelper - getFeedbackPaymentType");
         $pieces = explode('_', $paymentType);
         return strtolower($pieces[0]);
     }
@@ -544,6 +487,7 @@ class FCBPayPaymentHelper extends FCBPayPaymentModuleHelper
      */
     public function getObtainingCodeComment($pattern = '', $feedback = array())
     {
+		exit("FCBPayPaymentHelper.php - FCBPayPaymentHelper - getObtainingCodeComment");
         // Filter inputs
         $undefinedMessage = 'undefined';
         if (empty($pattern) === true) {
@@ -609,6 +553,7 @@ class FCBPayPaymentHelper extends FCBPayPaymentModuleHelper
      */
     private function filterUrl($url)
     {
+		exit("FCBPayPaymentHelper.php - FCBPayPaymentHelper - filterUrl");
         return str_replace('&amp;', '&', $url);
     }
 
@@ -619,6 +564,7 @@ class FCBPayPaymentHelper extends FCBPayPaymentModuleHelper
      */
     private function getModuleDescription($cartName = '')
     {
+		exit("FCBPayPaymentHelper.php - FCBPayPaymentHelper - getModuleDescription");
         return strtolower($this->provider) . '_module_' . strtolower($cartName);
     }
 
@@ -707,10 +653,11 @@ class FCBPayPaymentHelper extends FCBPayPaymentModuleHelper
      */
     private function getSdkExtraPaymentInfoOption($type = '')
     {
+		exit("FCBPayPaymentHelper.php - FCBPayPaymentHelper - getSdkExtraPaymentInfoOption");
         if ($type === 'Y') {
-            return ECPay_ExtraPaymentInfo::Yes;
+            return Pay_ExtraPaymentInfo::Yes;
         }
-        return ECPay_ExtraPaymentInfo::No;
+        return Pay_ExtraPaymentInfo::No;
     }
 
     /**
@@ -720,6 +667,7 @@ class FCBPayPaymentHelper extends FCBPayPaymentModuleHelper
      */
     private function getInstallment($paymentType = '')
     {
+		exit("FCBPayPaymentHelper.php - FCBPayPaymentHelper - getInstallment");
         // Filter inputs
         if (empty($paymentType) === true) {
             return false;
@@ -742,8 +690,7 @@ class FCBPayPaymentHelper extends FCBPayPaymentModuleHelper
             return false;
         }
 
-        $pieces = explode('_', $paymentType);
-        return $this->getSdkPaymentMethod($pieces[0]);
+        return $this->getSdkPaymentMethod($paymentType);
     }
 
     /**
@@ -754,6 +701,7 @@ class FCBPayPaymentHelper extends FCBPayPaymentModuleHelper
      */
     public function getFeedback($data)
     {
+		exit("FCBPayPaymentHelper.php - FCBPayPaymentHelper - getFeedback");
         // Filter inputs
         $whiteList = array(
             'hashKey',
@@ -765,14 +713,14 @@ class FCBPayPaymentHelper extends FCBPayPaymentModuleHelper
         $this->sdk->MerchantID = $this->getMerchantId();
         $this->sdk->HashKey = $inputs['hashKey'];
         $this->sdk->HashIV = $inputs['hashIv'];
-        $this->sdk->EncryptType = ECPay_EncryptType::ENC_SHA256;
+        $this->sdk->EncryptType = Pay_EncryptType::ENC_SHA256;
         try {
             $feedback = $this->sdk->CheckOutFeedback();
         } catch (Exception $e) {
             $error = $e->getMessage();
             if ($error === 'CheckMacValue verify fail.') {
                 // 定期定額可能有 MD5 壓碼的舊訂單，增加 MD5 壓碼相容性
-                $this->sdk->EncryptType = ECPay_EncryptType::ENC_MD5;
+                $this->sdk->EncryptType = Pay_EncryptType::ENC_MD5;
                 $feedback = $this->sdk->CheckOutFeedback();
             } else {
                 throw new Exception ($error);
@@ -793,6 +741,7 @@ class FCBPayPaymentHelper extends FCBPayPaymentModuleHelper
      */
     public function getTradeInfo($data)
     {
+		exit("FCBPayPaymentHelper.php - FCBPayPaymentHelper - getTradeInfo");
         // Filter inputs
         $whiteList = array(
             'hashKey',
@@ -823,6 +772,7 @@ class FCBPayPaymentHelper extends FCBPayPaymentModuleHelper
      */
     private function isSuccess($feedback, $type)
     {
+		exit("FCBPayPaymentHelper.php - FCBPayPaymentHelper - isSuccess");
         // Filter inputs
         $whiteList = array(
             'RtnCode',
@@ -843,6 +793,7 @@ class FCBPayPaymentHelper extends FCBPayPaymentModuleHelper
      */
     private function getPaymentFailed($orderId = 0, $feedback = array())
     {
+		exit("FCBPayPaymentHelper.php - FCBPayPaymentHelper - getPaymentFailed");
         // Filter inputs
         if (empty($orderId) === true) {
             return false;
@@ -867,6 +818,7 @@ class FCBPayPaymentHelper extends FCBPayPaymentModuleHelper
      */
     private function getSuccessState($data = array())
     {
+		exit("FCBPayPaymentHelper.php - FCBPayPaymentHelper - getSuccessState");
         // Filter inputs
         $whiteList = array(
             'validState',
@@ -893,6 +845,7 @@ class FCBPayPaymentHelper extends FCBPayPaymentModuleHelper
      */
     private function getInvalidPayment($orderId = 0)
     {
+		exit("FCBPayPaymentHelper.php - FCBPayPaymentHelper - getInvalidPayment");
         // Filter inputs
         if (empty($orderId) === true) {
             return false;
@@ -909,6 +862,7 @@ class FCBPayPaymentHelper extends FCBPayPaymentModuleHelper
      */
     public function getOrderStatusPending()
     {
+		exit("FCBPayPaymentHelper.php - FCBPayPaymentHelper - getOrderStatusPending");
         return $this->orderStatus['pending'];
     }
 
@@ -920,6 +874,7 @@ class FCBPayPaymentHelper extends FCBPayPaymentModuleHelper
      */
     public function getOrderStatusProcessing()
     {
+		exit("FCBPayPaymentHelper.php - FCBPayPaymentHelper - getOrderStatusProcessing");
         return $this->orderStatus['processing'];
     }
 
@@ -931,6 +886,7 @@ class FCBPayPaymentHelper extends FCBPayPaymentModuleHelper
      */
     public function getOrderStatusOnHold()
     {
+		exit("FCBPayPaymentHelper.php - FCBPayPaymentHelper - getOrderStatusOnHold");
         return $this->orderStatus['onHold'];
     }
 
@@ -942,6 +898,7 @@ class FCBPayPaymentHelper extends FCBPayPaymentModuleHelper
      */
     public function getOrderStatusCancelled()
     {
+		exit("FCBPayPaymentHelper.php - FCBPayPaymentHelper - getOrderStatusCancelled");
         return $this->orderStatus['cancelled'];
     }
 
@@ -953,6 +910,7 @@ class FCBPayPaymentHelper extends FCBPayPaymentModuleHelper
      */
     public function getOrderStatusEcpay()
     {
+		exit("FCBPayPaymentHelper.php - FCBPayPaymentHelper - getOrderStatusEcpay");
         return $this->orderStatus['ecpay'];
     }
 
@@ -965,7 +923,7 @@ class FCBPayPaymentHelper extends FCBPayPaymentModuleHelper
      */
     public function setOrderStatus($data)
     {
-        $status = array('Pending', 'Processing', 'OnHold', 'Cancelled', 'Ecpay');
+        $status = array('Pending', 'Processing', 'OnHold', 'Cancelled', 'Pay');
 
         foreach($status as $value) {
             $funName = 'setOrderStatus' . $value; // 組合 function name
@@ -1023,13 +981,13 @@ class FCBPayPaymentHelper extends FCBPayPaymentModuleHelper
 
     /**
      * setOrderStatusEcpay function
-     * 設定購物車訂單狀態 - ECPay Shipping
+     * 設定購物車訂單狀態 - pay
      *
      * @param  string $value 要儲存的值
      * @return void
      */
-    public function setOrderStatusEcpay($value)
+    public function setOrderStatuspay($value)
     {
-        $this->orderStatus['ecpay'] = $value;
+        $this->orderStatus['pay'] = $value;
     }
 }

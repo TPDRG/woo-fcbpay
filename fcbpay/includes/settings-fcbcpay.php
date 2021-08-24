@@ -3,7 +3,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-return apply_filters( 'wc_ecpay_payment_settings',
+return apply_filters( 'FCBpay_payment_settings',
 	array(
 		'enabled' => array(
 			'title' 	=> '是否啟用',
@@ -50,8 +50,14 @@ return apply_filters( 'wc_ecpay_payment_settings',
             'description' => '交易驗證金鑰',
 			'default' 	=> 'ABCD1234567889'
 		),
+		'ResURL' => array(
+			'title' 	=> '回傳網址',
+			'type' 		=> 'text',
+            'description' => '資料回傳網址，可由電商收款通設定',
+			'default' 	=> ''
+		),
         'payment_methods' => array(
-            'type' 		=> 'ecpay_payment_methods',
+            'type' 		=> 'pay_payment_methods',
         ),
 	)
 );

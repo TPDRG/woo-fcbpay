@@ -23,10 +23,10 @@ abstract class FCBPay_OrderNoteEmail
  */
 class WC_Gateway_FCBPay extends WC_Payment_Gateway
 {
-    public $ecpay_test_mode;
     public $merchant_id;
     public $pay_server;
     public $hash_key;
+	public $ResURL;
     public $ecpay_hash_iv;
     public $ecpay_choose_payment;
     public $payment_methods;
@@ -51,17 +51,17 @@ class WC_Gateway_FCBPay extends WC_Payment_Gateway
         $this->pay_server            = $this->get_option('payServer');
         $this->merchant_id     = $this->get_option('merchant_id');
         $this->hash_key        = $this->get_option('hash_key');
-
+		$this->ResURL        = $this->get_option('ResURL');
+		
         # Load the helper
         $this->helper = FCBPay_PaymentCommon::getHelper();
         $this->helper->setMerchantId($this->merchant_id);
 		$this->helper->setPayServerUrl($this->pay_server);
-        $this->ecpay_test_mode = ($this->helper->isTestMode($this->merchant_id)) ? 'yes' : 'no';
 
         # Get the payment methods
         $payment_methods = array();
-        foreach($this->helper->PaymentMethods as $ecpayPaymentMethods) {
-            $payment_methods[$ecpayPaymentMethods] = $this->get_payment_desc($ecpayPaymentMethods);
+        foreach($this->helper->PaymentMethods as $FCBPaymentMethods) {
+            $payment_methods[$FCBPaymentMethods] = $this->get_payment_desc($FCBPaymentMethods);
         }
         $this->payment_methods = $payment_methods;
         $this->get_payment_options();
@@ -71,10 +71,9 @@ class WC_Gateway_FCBPay extends WC_Payment_Gateway
         # Register a action to save administrator settings
         add_action('woocommerce_update_options_payment_gateways_' . $this->id, array($this, 'process_admin_options'));
         add_action('woocommerce_update_options_payment_gateways_' . $this->id, array(&$this, 'process_admin_payment_options'));
-
+	
         $this->add_checkout_actions();
-        $this->add_get_plugin_info_filters();
-
+		
         # 訂單明細頁
         add_action('woocommerce_admin_order_data_after_order_details', array($this, 'action_woocommerce_admin_order_status_cancel'));
     }
@@ -108,8 +107,7 @@ class WC_Gateway_FCBPay extends WC_Payment_Gateway
      */
     public function receipt_page($order_id)
     {
-
-        do_action('fcbpay_redirect_payment_center', $order_id);
+		do_action('fcbpay_redirect_payment_center', $order_id);
     }
     /**
      * 後台 - 載入參數設定欄位
@@ -124,7 +122,7 @@ class WC_Gateway_FCBPay extends WC_Payment_Gateway
      */
     public function payment_fields()
     {
-        if (!empty($this->title)) {
+		if (!empty($this->title)) {
             echo $this->helper->addNextLine(esc_html($this->title) . '('. $this->merchant_id  .')' . '<br /><br />');
             echo $this->helper->addNextLine(esc_html($this->description) . '<br /><br />');
         }
@@ -133,7 +131,7 @@ class WC_Gateway_FCBPay extends WC_Payment_Gateway
             // 產生 Html
             $data = array(
                 'payment_options' => $this->payment_options,
-                'ecpay_payment_methods' => $this->payment_methods
+                'FCBpay_payment_methods' => $this->payment_methods
             );
 
             echo $this->show_select_payment_methods($data);
@@ -150,16 +148,16 @@ class WC_Gateway_FCBPay extends WC_Payment_Gateway
      */
     public function show_select_payment_methods($data)
     {
-        // 宣告參數
+		// 宣告參數
         $payment_options = $data['payment_options'];
-        $ecpay_payment_methods = $data['ecpay_payment_methods'];
+        $FCBpay_payment_methods = $data['FCBpay_payment_methods'];
 
         // Html
         $szHtml  = '';
 
         $szHtml .= '付款方法' . ' : ';
-        $szHtml .= '<select name="ecpay_choose_payment">';
-        foreach ($ecpay_payment_methods as $payment_method => $value) {
+        $szHtml .= '<select id="FCBpay_choose_payment" name="FCBpay_choose_payment" onchange="paymentchange(this)">';
+        foreach ($FCBpay_payment_methods as $payment_method => $value) {
             if (in_array($payment_method, $payment_options)) {
                 $szHtml .= '<option value="' . esc_attr($payment_method) . '">';
                 $szHtml .=    esc_html($value);
@@ -167,7 +165,23 @@ class WC_Gateway_FCBPay extends WC_Payment_Gateway
             }
         }
         $szHtml .= '</select>';
-
+		$szHtml .= '<div id="subdiv"></div>';
+		$szHtml .= '<script>
+					function paymentchange(item)
+					{
+						var v = item.options[item.selectedIndex].value
+						var subdiv = document.getElementById("subdiv");
+						if(v == "CREDIT_REWARD")
+						{
+							subdiv.innerHTML = "紅利折抵活動代碼<input type=\'text\' name=\'BonusActionCode\' ></input>";
+						}
+						else
+						{
+							subdiv.innerHTML = "";
+						}
+					}
+					</script>';
+		
         return $szHtml;
     }
 
@@ -175,16 +189,15 @@ class WC_Gateway_FCBPay extends WC_Payment_Gateway
     /**
      * 後台-付款方式區塊
      */
-    function generate_ecpay_payment_methods_html()
+    function generate_pay_payment_methods_html()
     {
-        ob_start();
+		ob_start();
 
         // 產生 Html
         $args = [
             'id' => $this->id,
             'payment_options' => $this->payment_options,
-            'ecpay_payment_methods' => $this->payment_methods,
-            'ecpay_payment_methods_special' => $this->helper->ecpayPaymentMethodsSpecial
+            'payment_methods' => $this->payment_methods
         ];
         wc_get_template('admin/FCBPay-admin-settings-payment-methods.php', $args, '', TPAY_PAYMENT_PLUGIN_PATH . 'templates/');
 
@@ -196,7 +209,7 @@ class WC_Gateway_FCBPay extends WC_Payment_Gateway
      */
     function process_admin_payment_options()
     {
-        $options = array();
+		$options = array();
         if (isset($this->payment_methods) === true) {
             foreach ($this->payment_methods as $key => $value) {
                 if (array_key_exists($key, $_POST)) $options[] = $key ;
@@ -220,10 +233,16 @@ class WC_Gateway_FCBPay extends WC_Payment_Gateway
      */
     public function validate_fields()
     {
-        $choose_payment = sanitize_text_field($_POST['ecpay_choose_payment']);
+        $choose_payment = sanitize_text_field($_POST['FCBpay_choose_payment']);
         $payment_desc = $this->get_payment_desc($choose_payment);
         if ($_POST['payment_method'] == $this->id && !empty($payment_desc)) {
-            $this->ecpay_choose_payment = $choose_payment;
+            $this->FCBpay_choose_payment = $choose_payment;
+			if (isset($_POST["BonusActionCode"])){
+				$this->BonusActionCode = sanitize_text_field($_POST['BonusActionCode']);
+			}
+			else{
+				$this->BonusActionCode = '1234567';
+			}
             return true;
         } else {
             $this->ECPay_add_error('錯誤支付'. $payment_desc);
@@ -241,8 +260,9 @@ class WC_Gateway_FCBPay extends WC_Payment_Gateway
         $order->update_status('pending', '交易處理中');
 
         # Set the ECPay payment type to the order note
-        $order->add_order_note($this->ecpay_choose_payment, FCBPay_OrderNoteEmail::PAYMENT_METHOD);
-
+        $order->add_order_note($this->FCBpay_choose_payment, FCBPay_OrderNoteEmail::PAYMENT_METHOD);
+		//$order->add_meta_data('BonusActionCode',$this->BonusActionCode);
+		add_post_meta($order_id, '_BonusActionCode', sanitize_text_field($this->BonusActionCode), true);
         return array(
             'result' => 'success',
             'redirect' => $order->get_checkout_payment_url(true)
@@ -254,6 +274,7 @@ class WC_Gateway_FCBPay extends WC_Payment_Gateway
      */
     public function receive_response()
     {
+		exit("class-wc-gateway-fcbpay.php - WC_Gateway_FCBPay - receive_response");
         $result_msg = '1|OK';
         $order = null;
         try {
@@ -352,6 +373,7 @@ class WC_Gateway_FCBPay extends WC_Payment_Gateway
      */
     private function tran($content, $domain = 'ecpay')
     {
+		exit("class-wc-gateway-fcbpay.php - WC_Gateway_FCBPay - tran");
         if ($domain == 'ecpay') {
             return __($content, 'ecpay');
         } else {
@@ -397,6 +419,7 @@ class WC_Gateway_FCBPay extends WC_Payment_Gateway
      */
     private function is_order_complete($order)
     {
+		exit("class-wc-gateway-fcbpay.php - WC_Gateway_FCBPay - is_order_complete");
         $status = '';
         $status = (method_exists($order,'get_status') == true ) ? $order->get_status() : $order->status;
 
@@ -414,6 +437,7 @@ class WC_Gateway_FCBPay extends WC_Payment_Gateway
      */
     public function get_order_comments($ecpay_feedback)
     {
+		exit("class-wc-gateway-fcbpay.php - WC_Gateway_FCBPay - get_order_comments");
         $comments = array(
             'ATM' =>
                 sprintf(
@@ -448,6 +472,7 @@ class WC_Gateway_FCBPay extends WC_Payment_Gateway
      */
     public function confirm_order($order, $comments, $ecpay_feedback)
     {
+		exit("class-wc-gateway-fcbpay.php - WC_Gateway_FCBPay - confirm_order");
         // 判斷是否為模擬付款
         if ($ecpay_feedback['SimulatePaid'] == 0) {
             $order->add_order_note($comments, FCBPay_OrderNoteEmail::CONFIRM_ORDER);
@@ -475,7 +500,7 @@ class WC_Gateway_FCBPay extends WC_Payment_Gateway
      */
     public function thankyou_page( $order_id )
     {
-
+		exit("class-wc-gateway-fcbpay.php - WC_Gateway_FCBPay - thankyou_page");
         $this->payment_details( $order_id );
 
     }
@@ -487,6 +512,7 @@ class WC_Gateway_FCBPay extends WC_Payment_Gateway
      */
     private function payment_details( $order_id = '' )
     {
+		exit("class-wc-gateway-fcbpay.php - WC_Gateway_FCBPay - payment_details");
         $account_html = '';
         $has_details = false ;
         $a_has_details = array();
@@ -556,6 +582,7 @@ class WC_Gateway_FCBPay extends WC_Payment_Gateway
      */
     public function action_woocommerce_admin_order_status_cancel()
     {
+		exit("class-wc-gateway-fcbpay.php - WC_Gateway_FCBPay - action_woocommerce_admin_order_status_cancel");
         try {
             global $post;
 
@@ -572,7 +599,7 @@ class WC_Gateway_FCBPay extends WC_Payment_Gateway
                 $order_status               = $order->get_status();                                                // 訂單狀態
                 $payment_method             = $order->get_payment_method();                                        // 付款方式
                 $date_created               = $order->get_date_created()->getTimestamp();                          // 訂單建立時間
-                $ecpay_payment_method       = get_post_meta($order_id, '_ecpay_payment_method', true);             // 綠界付款方式
+                $ecpay_payment_method       = get_post_meta($order_id, '_FCBpay_payment_method', true);             // 綠界付款方式
                 $stage_payment_order_prefix = get_post_meta($order_id, '_ecpay_payment_stage_order_prefix', true); // 測試訂單編號前綴
                 $hold_stock_minutes         = empty(get_option('woocommerce_hold_stock_minutes')) ? 0 : get_option('woocommerce_hold_stock_minutes'); // 取得保留庫存時間
 
@@ -619,6 +646,7 @@ class WC_Gateway_FCBPay extends WC_Payment_Gateway
      */
     private function note_success_times($order_id, $total_success_times)
     {
+		exit("class-wc-gateway-fcbpay.php - WC_Gateway_FCBPay - note_success_times");
         $nTotalSuccessTimes = ( isset($total_success_times) && ( empty($total_success_times) || $total_success_times == 1 ))  ? '' :  $total_success_times;
         update_post_meta($order_id, '_total_success_times', $nTotalSuccessTimes );
     }
@@ -631,6 +659,7 @@ class WC_Gateway_FCBPay extends WC_Payment_Gateway
      */
     private function auto_invoice($order_id, $ecpay_feedback)
     {
+		exit("class-wc-gateway-fcbpay.php - WC_Gateway_FCBPay - auto_invoice");
         // call invoice model
         $invoice_active_ecpay   = 0 ;
 
@@ -666,6 +695,7 @@ class WC_Gateway_FCBPay extends WC_Payment_Gateway
      */
     private function ECPay_add_error($error_message)
     {
+		exit("class-wc-gateway-fcbpay.php - WC_Gateway_FCBPay - ECPay_add_error");
         wc_add_notice(esc_html($error_message), 'error');
     }
 
@@ -684,18 +714,13 @@ class WC_Gateway_FCBPay extends WC_Payment_Gateway
         // 撈取訂單資訊
         $order = new WC_Order($order_id);
         $notes = $order->get_customer_order_notes();
-
         // 儲存訂單資訊
-        $stage_order_prefix = $this->helper->getMerchantOrderPrefix();
         $data = array(
-            'ecpay_test_mode'    => $this->ecpay_test_mode,
-            'order_id'           => $order_id,
-            'notes'              => $notes[0],
-            'stage_order_prefix' => $stage_order_prefix,
-            'is_expire'          => $this->helper->isExpire['no'],
+			'order_id'           => $order_id,
+            'notes'              => $notes[0]
         );
-        FCBPay_PaymentCommon::ecpay_save_payment_order_info($data);
-
+        FCBPay_PaymentCommon::FCBpay_save_payment_order_info($data);
+		
         try {
             # Get the chosen payment and installment
             $notes = $order->get_customer_order_notes();
@@ -703,15 +728,12 @@ class WC_Gateway_FCBPay extends WC_Payment_Gateway
 
             $data = array(
                 'PayType'    		=> $PayType,
-                'hashK'              => $this->hash_key,
-                'returnUrl'         => add_query_arg('wc-api', 'WC_Gateway_FCBPay', home_url('/')),
-                'clientBackUrl'     => $this->get_return_url($order),
+                'hashK'             => $this->hash_key,
+                'returnUrl'         => $this->ResURL,
                 'orderId'           => $order->get_id(),
                 'total'             => $order->get_total(),
-                'itemName'          => 'A Package Of Online Goods',
-                'cartName'          => 'woocommerce',
                 'currency'          => $order->get_currency(),
-                'needExtraPaidInfo' => 'Y',
+				'BonusActionCode'	=> get_post_meta($order_id, '_BonusActionCode', true)
             );
 
             $this->helper->checkout($data);
@@ -719,68 +741,6 @@ class WC_Gateway_FCBPay extends WC_Payment_Gateway
         } catch(Exception $e) {
             $this->ECPay_add_error($e->getMessage());
         }
-    }
-
-    /**
-     * 新增取得模組資訊 Filters
-     *
-     * @return void
-     */
-    private function add_get_plugin_info_filters()
-    {
-        $filters = array(
-            'ecpay_is_payment_enabled',
-            'ecpay_get_payment_plugin_version',
-        );
-        $parent = $this;
-        array_walk($filters, function ($value) use ($parent) {
-            add_filter($value, array($parent, $value));
-        });
-    }
-
-    /**
-     * 檢查金流模組是否啟用
-     *
-     * @return bool
-     */
-    public function ecpay_is_payment_enabled()
-    {
-        $enabled = false;
-        try {
-            if (!property_exists($this, 'id')) {
-                throw new Exception('Property "id" does not exist!');
-            }
-
-            $setting = get_option( 'woocommerce_' . $this->id . '_settings', '' );
-            if (empty($setting)) {
-                throw new Exception('Payment settings is empty!');
-            }
-
-            if (!isset($setting['enabled'])) {
-                throw new Exception('Payment settings "enabled" is empty!');
-            }
-
-            $enabled = $setting['enabled'];
-        } catch (Exception $e) {
-
-        }
-
-        return $enabled;
-    }
-
-    /**
-     * 取得金流模組版本
-     *
-     * @return string
-     */
-    public function ecpay_get_payment_plugin_version()
-    {
-        $version = '';
-        if (defined('ECPAY_PAYMENT_PLUGIN_VERSION')) {
-            $version = TPAY_PAYMENT_PLUGIN_VERSION;
-        }
-
-        return $version;
     }
 }
 
@@ -796,7 +756,7 @@ class FCBPay_PaymentCommon
     public static function getHelper()
     {
         $helper = new FCBPayPaymentHelper();
-
+		
         # 設定時區
         $helper->setTimezone(static::getTimezone());
 
@@ -832,7 +792,7 @@ class FCBPay_PaymentCommon
             'Processing' => 'processing',
             'OnHold'     => 'on-hold',
             'Cancelled'  => 'cancelled',
-            'Ecpay'      => 'ecpay',
+            'Pay'     	 => 'pay',
         );
 
         return $data;
@@ -843,18 +803,11 @@ class FCBPay_PaymentCommon
      * @param  integer $order_id 訂單編號
      * @return void
      */
-    public static function ecpay_save_payment_order_info($data)
+    public static function FCBpay_save_payment_order_info($data)
     {
-        // 儲存測試模式訂單編號前綴
-        $stage_order_prefix = isset($data['stage_order_prefix']) ? $data['stage_order_prefix'] : '' ;
-        add_post_meta($data['order_id'], '_ecpay_payment_stage_order_prefix', sanitize_text_field($stage_order_prefix), true);
-
         // 儲存付款方式
         $notes_comment_content = isset($data['notes']) ? $data['notes']->comment_content : '' ;
-        add_post_meta($data['order_id'], '_ecpay_payment_method', sanitize_text_field($notes_comment_content), true);
-
-        // 是否做過訂單反查檢查，預設'N'(否)
-        add_post_meta($data['order_id'], '_ecpay_payment_is_expire', sanitize_text_field($data['is_expire']), true);
+        add_post_meta($data['order_id'], '_FCBpay_payment_method', sanitize_text_field($notes_comment_content), true);
     }
 }
 ?>

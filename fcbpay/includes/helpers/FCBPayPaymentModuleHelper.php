@@ -59,7 +59,7 @@ class FCBPayPaymentModuleHelper
      */
     public function __construct()
     {
-        $this->setLogDir('');
+        $this->setLogDir('C:\xampp\htdocs\wp-content\plugins\fcbpay\LOG');
         $this->setLogFileName('');
         $this->sdk = $this->factory();
         $this->merchantOrderPrefix = $this->getDateTime('ymdHis', '');
@@ -94,32 +94,12 @@ class FCBPayPaymentModuleHelper
      */
     private function set($name, $value)
     {
-        if (property_exists($this, $name) === true) {
+		if (property_exists($this, $name) === true) {
             $this->{$name} = $value;
             return true;
         } else {
             return false;
         }
-    }
-
-    /**
-     * Check test mode by merchant id
-     * @param string $merchantId Merchant ID
-     * @return bool
-     */
-    public function isTestMode($merchantId = '')
-    {
-        return in_array($merchantId, $this->stageMerchantIds);
-    }
-
-    /**
-     * Set stage merchant ids
-     * @param array $merchantIds
-     * @return bool
-     */
-    protected function setStageMerchantIds($merchantIds = array())
-    {
-        return $this->set('stageMerchantIds', $merchantIds);
     }
 
     /**
@@ -164,13 +144,11 @@ class FCBPayPaymentModuleHelper
     }
 
     /**
-     * Set log directory
-     * @param string $path Log directory path
-     * @return bool
+		設定LOG存取路徑
      */
     public function setLogDir($path = '')
     {
-        $defaultDirPath = '.';
+		$defaultDirPath = '.';
         if (empty($path) === false) {
             if (file_exists($path) === true) {
                 return $this->set('logDirPath', $path);
@@ -188,6 +166,7 @@ class FCBPayPaymentModuleHelper
      */
     public function getLogDir()
     {
+		exit("FCBPayPaymentModuleHelper.php - FCBPayPaymentModuleHelper - getLogDir");
         return $this->logDirPath;
     }
 
@@ -214,6 +193,7 @@ class FCBPayPaymentModuleHelper
      */
     public function getLogFileName()
     {
+		exit("FCBPayPaymentModuleHelper.php - FCBPayPaymentModuleHelper - getLogFileName");
         return $this->logFileName;
     }
 
@@ -223,6 +203,7 @@ class FCBPayPaymentModuleHelper
      */
     public function getFullLogPath()
     {
+		exit("FCBPayPaymentModuleHelper.php - FCBPayPaymentModuleHelper - getFullLogPath");
         $format = '%s/%s';
         return sprintf($format, $this->getLogDir(), $this->getLogFileName());
     }
@@ -234,6 +215,7 @@ class FCBPayPaymentModuleHelper
      */
     public function getLogContent($content = '')
     {
+		exit("FCBPayPaymentModuleHelper.php - FCBPayPaymentModuleHelper - getLogContent");
         $format = '%s %s';
         $parseList = array('array', 'object');
         $logDate = $this->getDateTime('Y-m-d H:i:s', '');
@@ -253,6 +235,7 @@ class FCBPayPaymentModuleHelper
      */
     public function saveDebugLog($content = '')
     {
+		exit("FCBPayPaymentModuleHelper.php - FCBPayPaymentModuleHelper - saveDebugLog");
         // Save log
         $logPath = $this->getFullLogPath();
         $logContent = $this->getLogContent($content);
@@ -267,6 +250,7 @@ class FCBPayPaymentModuleHelper
      */
     public function only($source = array(), $whiteList = array())
     {
+		exit("FCBPayPaymentModuleHelper.php - FCBPayPaymentModuleHelper - only");
         $variables = array();
 
         // Return empty array when do not set white list
@@ -291,6 +275,7 @@ class FCBPayPaymentModuleHelper
      */
     public function hasEmpty($data = array())
     {
+		exit("FCBPayPaymentModuleHelper.php - FCBPayPaymentModuleHelper - hasEmpty");
         foreach ($data as $value) {
             if (empty($value) === true) {
                 return true;
@@ -305,6 +290,7 @@ class FCBPayPaymentModuleHelper
      */
     public function echoJson($parameters = array())
     {
+		exit("FCBPayPaymentModuleHelper.php - FCBPayPaymentModuleHelper - echoJson");
         $json = json_encode($parameters);
         $this->echoAndExit($json);
     }
@@ -315,6 +301,7 @@ class FCBPayPaymentModuleHelper
      */
     public function echoAndExit($message = '')
     {
+		exit("FCBPayPaymentModuleHelper.php - FCBPayPaymentModuleHelper - echoAndExit");
         echo $message;
         exit;
     }
@@ -326,6 +313,7 @@ class FCBPayPaymentModuleHelper
      */
     public function setMerchantOrderPrefix($prefix = '')
     {
+		exit("FCBPayPaymentModuleHelper.php - FCBPayPaymentModuleHelper - setMerchantOrderPrefix");
         return $this->set('merchantOrderPrefix', $prefix);
     }
 
@@ -335,6 +323,7 @@ class FCBPayPaymentModuleHelper
      */
     public function getMerchantOrderPrefix()
     {
+		exit("FCBPayPaymentModuleHelper.php - FCBPayPaymentModuleHelper - getMerchantOrderPrefix");
         return $this->merchantOrderPrefix;
     }
 
@@ -345,12 +334,9 @@ class FCBPayPaymentModuleHelper
      */
     public function setMerchantTradeNo($orderId = 0)
     {
+		exit("FCBPayPaymentModuleHelper.php - FCBPayPaymentModuleHelper - setMerchantTradeNo");
         $merchantId = $this->getMerchantId();
-        if ($this->isTestMode($merchantId) === true) {
-            return $this->getMerchantOrderPrefix() . $orderId;
-        } else {
-            return strval($orderId);
-        }
+        return strval($orderId);
     }
 
     /**
@@ -360,6 +346,7 @@ class FCBPayPaymentModuleHelper
      */
     public function getMerchantTradeNo($merchantTradeNo = 0)
     {
+		exit("FCBPayPaymentModuleHelper.php - FCBPayPaymentModuleHelper - getMerchantTradeNo");
         // Filter inputs
         if (empty($merchantTradeNo) === true) {
             return false;
@@ -367,12 +354,7 @@ class FCBPayPaymentModuleHelper
         unset($inputs);
 
         $merchantId = $this->getMerchantId();
-        if ($this->isTestMode($merchantId) === true) {
-            $start = $this->getMerchantOrderPrefixLength();
-            $orderId = substr($merchantTradeNo, $start);
-        } else {
-            $orderId = $merchantTradeNo;
-        }
+        $orderId = $merchantTradeNo;
         return $orderId;
     }
 
@@ -382,6 +364,7 @@ class FCBPayPaymentModuleHelper
      */
     public function getMerchantOrderPrefixLength()
     {
+		exit("FCBPayPaymentModuleHelper.php - FCBPayPaymentModuleHelper - getMerchantOrderPrefixLength");
         return strlen($this->getMerchantOrderPrefix());
     }
 
@@ -392,7 +375,7 @@ class FCBPayPaymentModuleHelper
      */
     public function setTimezone($timezone)
     {
-        return $this->set('timezone', $timezone);
+		return $this->set('timezone', $timezone);
     }
 
     /**
@@ -411,14 +394,12 @@ class FCBPayPaymentModuleHelper
      */
     public function getUnixTime($dateString = '')
     {
+		exit("FCBPayPaymentModuleHelper.php - FCBPayPaymentModuleHelper - getUnixTime");
         return strtotime($dateString);
     }
 
     /**
-     * Get date time
-     * @param  string $pattern    Date time pattern
-     * @param  string $dateString Date string
-     * @return string
+		取得日期時間
      */
     public function getDateTime($pattern = 'Y-m-d H:i:s', $dateString = '')
     {
@@ -446,7 +427,7 @@ class FCBPayPaymentModuleHelper
      */
     public function getAmount($amount = 0)
     {
-        return round($amount, 0);
+		return round($amount, 0);
     }
 
     /**
@@ -457,7 +438,7 @@ class FCBPayPaymentModuleHelper
      */
     public function validAmount($source = 0, $target = 0)
     {
-        return ($this->getAmount($source) === $this->getAmount($target));
+		return ($this->getAmount($source) === $this->getAmount($target));
     }
 
     /**
@@ -468,6 +449,7 @@ class FCBPayPaymentModuleHelper
      */
     public function responseSuccess()
     {
+		exit("FCBPayPaymentModuleHelper.php - FCBPayPaymentModuleHelper - responseSuccess");
         exit('1|OK');
     }
 
@@ -479,6 +461,7 @@ class FCBPayPaymentModuleHelper
      */
     public function responseError($msg)
     {
+		exit("FCBPayPaymentModuleHelper.php - FCBPayPaymentModuleHelper - responseError");
         exit('0|' . $msg);
     }
 
@@ -491,6 +474,7 @@ class FCBPayPaymentModuleHelper
      */
     public function isHttps($site)
     {
+		exit("FCBPayPaymentModuleHelper.php - FCBPayPaymentModuleHelper - isHttps");
         if (strpos($site,"https://") !== false) {
             return true;
         } else {

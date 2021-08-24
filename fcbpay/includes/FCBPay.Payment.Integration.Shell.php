@@ -1,39 +1,43 @@
 <?php
-// SDK外殼，用來處理WooCommerce相容性問題
-
 include_once('FCBPay.Payment.Integration.php');
 
-final class TPay_Woo_AllInOne extends TPaySDK {
+final class FCBPay_Woo_AllInOne extends FCBPaySDK {
 
     //訂單查詢作業
     function QueryTradeInfo() {
-        return $arFeedback = ECPay_Woo_QueryTradeInfo::CheckOut(array_merge($this->Query,array('MerchantID' => $this->MerchantID, 'EncryptType' => $this->EncryptType)) ,$this->HashKey ,$this->HashIV ,$this->ServiceURL) ;
+		exit("FCBPay.Payment.Integration.Shell.php - TPay_Woo_AllInOne - QueryTradeInfo");
+        return $arFeedback = Pay_Woo_QueryTradeInfo::CheckOut(array_merge($this->Query,array('MerchantID' => $this->MerchantID, 'EncryptType' => $this->EncryptType)) ,$this->HashKey ,$this->HashIV ,$this->ServiceURL) ;
     }
 
     //信用卡定期定額訂單查詢的方法
     function QueryPeriodCreditCardTradeInfo() {
-        return $arFeedback = ECPay_Woo_QueryPeriodCreditCardTradeInfo::CheckOut(array_merge($this->Query,array('MerchantID' => $this->MerchantID, 'EncryptType' => $this->EncryptType)) ,$this->HashKey ,$this->HashIV ,$this->ServiceURL);
+		exit("FCBPay.Payment.Integration.Shell.php - TPay_Woo_AllInOne - QueryPeriodCreditCardTradeInfo");
+        return $arFeedback = Pay_Woo_QueryPeriodCreditCardTradeInfo::CheckOut(array_merge($this->Query,array('MerchantID' => $this->MerchantID, 'EncryptType' => $this->EncryptType)) ,$this->HashKey ,$this->HashIV ,$this->ServiceURL);
     }
 
     //信用卡關帳/退刷/取消/放棄的方法
     function DoAction() {
-        return $arFeedback = ECPay_Woo_DoAction::CheckOut(array_merge($this->Action,array('MerchantID' => $this->MerchantID, 'EncryptType' => $this->EncryptType)) ,$this->HashKey ,$this->HashIV ,$this->ServiceURL);
+		exit("FCBPay.Payment.Integration.Shell.php - TPay_Woo_AllInOne - DoAction");
+        return $arFeedback = Pay_Woo_DoAction::CheckOut(array_merge($this->Action,array('MerchantID' => $this->MerchantID, 'EncryptType' => $this->EncryptType)) ,$this->HashKey ,$this->HashIV ,$this->ServiceURL);
     }
 
     //合作特店申請撥款
     function AioCapture(){
-        return $arFeedback = ECPay_Woo_AioCapture::Capture(array_merge($this->Capture,array('MerchantID' => $this->MerchantID, 'EncryptType' => $this->EncryptType)) ,$this->HashKey ,$this->HashIV ,$this->ServiceURL);
+		exit("FCBPay.Payment.Integration.Shell.php - TPay_Woo_AllInOne - AioCapture");
+        return $arFeedback = Pay_Woo_AioCapture::Capture(array_merge($this->Capture,array('MerchantID' => $this->MerchantID, 'EncryptType' => $this->EncryptType)) ,$this->HashKey ,$this->HashIV ,$this->ServiceURL);
     }
 
     //查詢信用卡單筆明細紀錄
     function QueryTrade(){
-        return $arFeedback = ECPay_Woo_QueryTrade::CheckOut(array_merge($this->Trade,array('MerchantID' => $this->MerchantID, 'EncryptType' => $this->EncryptType)) ,$this->HashKey ,$this->HashIV ,$this->ServiceURL);
+		exit("FCBPay.Payment.Integration.Shell.php - TPay_Woo_AllInOne - QueryTrade");
+        return $arFeedback = Pay_Woo_QueryTrade::CheckOut(array_merge($this->Trade,array('MerchantID' => $this->MerchantID, 'EncryptType' => $this->EncryptType)) ,$this->HashKey ,$this->HashIV ,$this->ServiceURL);
     }
 
     // 產生訂單(站內付)
     function CreateTrade() {
+		exit("FCBPay.Payment.Integration.Shell.php - TPay_Woo_AllInOne - CreateTrade");
         $arParameters = array_merge( array('MerchantID' => $this->MerchantID, 'EncryptType' => $this->EncryptType) ,$this->Send);
-        return $arFeedback = ECPay_Woo_CreateTrade::CheckOut($arParameters,$this->SendExtend,$this->HashKey,$this->HashIV,$this->ServiceURL);
+        return $arFeedback = Pay_Woo_CreateTrade::CheckOut($arParameters,$this->SendExtend,$this->HashKey,$this->HashIV,$this->ServiceURL);
     }
 }
 
@@ -52,11 +56,11 @@ abstract class ECPay_Woo_Payment_Curl {
 /**
  * 抽象類
  */
-abstract class ECPay_Woo_Aio extends ECPay_Aio
+abstract class Pay_Woo_Aio extends Pay_Aio
 {
 
     protected static function ServerPost($Params ,$ServiceURL) {
-
+		exit("FCBPay.Payment.Integration.Shell.php - ECPay_Woo_Aio - ServerPost");
         $fields_string = http_build_query($Params);
 
         $rs = wp_remote_post($ServiceURL, array(
@@ -76,50 +80,56 @@ abstract class ECPay_Woo_Aio extends ECPay_Aio
     }
 }
 
-class ECPay_Woo_QueryTradeInfo extends ECPay_QueryTradeInfo
+class Pay_Woo_QueryTradeInfo extends Pay_QueryTradeInfo
 {
     protected static function ServerPost($Params ,$ServiceURL)
     {
-        return ECPay_Woo_Aio::ServerPost($Params ,$ServiceURL);
+		exit("FCBPay.Payment.Integration.Shell.php - ECPay_Woo_QueryTradeInfo - ServerPost");
+        return Pay_Woo_Aio::ServerPost($Params ,$ServiceURL);
     }
 }
 
-class ECPay_Woo_QueryPeriodCreditCardTradeInfo extends ECPay_QueryPeriodCreditCardTradeInfo
+class Pay_Woo_QueryPeriodCreditCardTradeInfo extends Pay_QueryPeriodCreditCardTradeInfo
 {
     protected static function ServerPost($Params ,$ServiceURL)
     {
-        return ECPay_Woo_Aio::ServerPost($Params ,$ServiceURL);
+		exit("FCBPay.Payment.Integration.Shell.php - ECPay_Woo_QueryPeriodCreditCardTradeInfo - ServerPost");
+        return Pay_Woo_Aio::ServerPost($Params ,$ServiceURL);
     }
 }
 
-class ECPay_Woo_DoAction extends ECPay_DoAction
+class Pay_Woo_DoAction extends Pay_DoAction
 {
     protected static function ServerPost($Params ,$ServiceURL)
     {
-        return ECPay_Woo_Aio::ServerPost($Params ,$ServiceURL);
+		exit("FCBPay.Payment.Integration.Shell.php - ECPay_Woo_DoAction - ServerPost");
+        return Pay_Woo_Aio::ServerPost($Params ,$ServiceURL);
     }
 }
 
-class ECPay_Woo_AioCapture extends ECPay_AioCapture
+class Pay_Woo_AioCapture extends Pay_AioCapture
 {
     protected static function ServerPost($Params ,$ServiceURL)
     {
-        return ECPay_Woo_Aio::ServerPost($Params ,$ServiceURL);
+		exit("FCBPay.Payment.Integration.Shell.php - ECPay_Woo_AioCapture - ServerPost");
+        return Pay_Woo_Aio::ServerPost($Params ,$ServiceURL);
     }
 }
 
-class ECPay_Woo_QueryTrade extends ECPay_QueryTrade
+class Pay_Woo_QueryTrade extends Pay_QueryTrade
 {
     protected static function ServerPost($Params ,$ServiceURL)
     {
-        return ECPay_Woo_Aio::ServerPost($Params ,$ServiceURL);
+		exit("FCBPay.Payment.Integration.Shell.php - ECPay_Woo_QueryTrade - ServerPost");
+        return Pay_Woo_Aio::ServerPost($Params ,$ServiceURL);
     }
 }
 
-class ECPay_Woo_CreateTrade extends ECPay_CreateTrade
+class Pay_Woo_CreateTrade extends Pay_CreateTrade
 {
     protected static function ServerPost($Params ,$ServiceURL)
     {
-        return ECPay_Woo_Aio::ServerPost($Params ,$ServiceURL);
+		exit("FCBPay.Payment.Integration.Shell.php - ECPay_Woo_CreateTrade - ServerPost");
+        return Pay_Woo_Aio::ServerPost($Params ,$ServiceURL);
     }
 }

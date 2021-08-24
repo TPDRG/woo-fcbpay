@@ -84,7 +84,7 @@ abstract class TPay_PaymentMethod {
 /**
  * 付款方式子項目。
  */
-abstract class ECPay_PaymentMethodItem {
+abstract class Pay_PaymentMethodItem {
 
     /**
      * 不指定。
@@ -253,7 +253,7 @@ abstract class ECPay_PaymentMethodItem {
 /**
  * 額外付款資訊。
  */
-abstract class ECPay_ExtraPaymentInfo {
+abstract class Pay_ExtraPaymentInfo {
 
     /**
      * 需要額外付款資訊。
@@ -270,7 +270,7 @@ abstract class ECPay_ExtraPaymentInfo {
 /**
  * 額外付款資訊。
  */
-abstract class ECPay_DeviceType {
+abstract class Pay_DeviceType {
 
     /**
      * 桌機版付費頁面。
@@ -287,7 +287,7 @@ abstract class ECPay_DeviceType {
 /**
  * 信用卡訂單處理動作資訊。
  */
-abstract class ECPay_ActionType {
+abstract class CREDIT_ActionType {
 
     /**
      * 關帳
@@ -312,36 +312,9 @@ abstract class ECPay_ActionType {
 }
 
 /**
- * 定期定額的週期種類。
- */
-abstract class ECPay_PeriodType {
-
-    /**
-     * 無
-     */
-    const None = '';
-
-    /**
-     * 年
-     */
-    const Year = 'Y';
-
-    /**
-     * 月
-     */
-    const Month = 'M';
-
-    /**
-     * 日
-     */
-    const Day = 'D';
-
-}
-
-/**
  * 電子發票開立註記。
  */
-abstract class ECPay_InvoiceState {
+abstract class InvoiceState {
     /**
      * 需要開立電子發票。
      */
@@ -356,7 +329,7 @@ abstract class ECPay_InvoiceState {
 /**
  * 電子發票載具類別
  */
-abstract class ECPay_CarruerType {
+abstract class Pay_CarruerType {
   // 無載具
   const None = '';
 
@@ -373,7 +346,7 @@ abstract class ECPay_CarruerType {
 /**
  * 電子發票列印註記
  */
-abstract class ECPay_PrintMark {
+abstract class Pay_PrintMark {
   // 不列印
   const No = '0';
 
@@ -384,7 +357,7 @@ abstract class ECPay_PrintMark {
 /**
  * 電子發票捐贈註記
  */
-abstract class ECPay_Donation {
+abstract class Pay_Donation {
   // 捐贈
   const Yes = '1';
 
@@ -406,7 +379,7 @@ abstract class ECPay_ClearanceMark {
 /**
  * 課稅類別
  */
-abstract class ECPay_TaxType {
+abstract class Pay_TaxType {
   // 應稅
   const Dutiable = '1';
 
@@ -423,7 +396,7 @@ abstract class ECPay_TaxType {
 /**
  * 字軌類別
  */
-abstract class ECPay_InvType {
+abstract class Pay_InvType {
   // 一般稅額
   const General = '07';
 
@@ -431,9 +404,9 @@ abstract class ECPay_InvType {
   const Special = '08';
 }
 
-if(!class_exists('ECPay_EncryptType', false))
+if(!class_exists('Pay_EncryptType', false))
 {
-    abstract class ECPay_EncryptType {
+    abstract class Pay_EncryptType {
         // MD5(預設)
         const ENC_MD5 = 0;
 
@@ -445,7 +418,7 @@ if(!class_exists('ECPay_EncryptType', false))
 /**
 
  */
-class TPaySDK {
+class FCBPaySDK {
 
     /**
      * @ SDK版本
@@ -454,43 +427,31 @@ class TPaySDK {
 
     public $ServiceURL = 'ServiceURL';
     public $ServiceMethod = 'ServiceMethod';
-    public $HashKey = 'HashKey';
-    public $HashIV = 'HashIV';
-    public $MerchantID = 'MerchantID';
+    public $hashK = 'hashK';
     public $PaymentType = 'PaymentType';
     public $Send = 'Send';
     public $SendExtend = 'SendExtend';
     public $Query = 'Query';
     public $Action = 'Action';
-    public $EncryptType = ECPay_EncryptType::ENC_MD5;
-
+	
     function __construct() {
 
         $this->PaymentType = 'aio';
         $this->Send = array(
 			"PlatFormId"        => '',
-			"PayType"     => TPay_PaymentMethod::ALL,
-            "ReturnURL"         => '',
-            "ClientBackURL"     => '',
-            "OrderResultURL"    => '',
-            "MerchantTradeNo"   => '',
-            "MerchantTradeDate" => '',
-            "PaymentType"       => 'aio',
-            "TotalAmount"       => '',
-            "TradeDesc"         => '',
-            "Remark"            => '',
-            "ChooseSubPayment"  => ECPay_PaymentMethodItem::None,
-            "NeedExtraPaidInfo" => ECPay_ExtraPaymentInfo::No,
-            "DeviceSource"      => '',
-            "IgnorePayment"     => '',
-            "InvoiceMark"       => ECPay_InvoiceState::No,
-            "Items"             => array(),
-            "StoreID"           => '',
-            "CustomField1"      => '',
-            "CustomField2"      => '',
-            "CustomField3"      => '',
-            "CustomField4"      => '',
-            'HoldTradeAMT'      => 0
+			"PayType"     		=> 'ALL',
+			'OrderId'			=> '',
+			"Amount"       		=> '',
+			"ShippingFee"		=> 0,
+            "ProductName"       => 'WC訂單',
+            "PayTitle"     		=> 'WCFCBPay',
+            "ClientIP"    		=> '127.0.0.1',
+            "TimeZone" 		    => '+0800',
+            "CreateTime"        => '',
+            "TransTime"         => '',
+            "ResURL"            => '',
+			"InvoiceMark"       => InvoiceState::No,
+			"Items"             => array()
         );
 
         $this->SendExtend = array();
@@ -502,7 +463,7 @@ class TPaySDK {
         $this->Action = array(
             'MerchantTradeNo' => '',
             'TradeNo' => '',
-            'Action' => ECPay_ActionType::C,
+            'Action' => CREDIT_ActionType::C,
             'TotalAmount' => 0
         );
         $this->Capture = array(
@@ -535,72 +496,83 @@ class TPaySDK {
 
     //產生訂單
     function CheckOut($target = "_self") {
-        $arParameters = array_merge( array('MerchantID' => $this->MerchantID, 'EncryptType' => $this->EncryptType) ,$this->Send);
-        ECPay_Send::CheckOut($target,$arParameters,$this->SendExtend,$this->HashKey,$this->HashIV,$this->ServiceURL);
+		$arParameters = $this->Send;
+        Pay_Send::CheckOut($target,$arParameters,$this->SendExtend,$this->hashK,'',$this->ServiceURL);
     }
 
     //產生訂單html code
     function CheckOutString($paymentButton = 'Submit', $target = "_self") {
+		exit("FCBPay.Payment.Integration.php - TPaySDK - CheckOutString");
         $arParameters = array_merge( array('MerchantID' => $this->MerchantID, 'EncryptType' => $this->EncryptType) ,$this->Send);
-        return ECPay_Send::CheckOutString($paymentButton,$target = "_self",$arParameters,$this->SendExtend,$this->HashKey,$this->HashIV,$this->ServiceURL);
+        return Pay_Send::CheckOutString($paymentButton,$target = "_self",$arParameters,$this->SendExtend,$this->HashKey,$this->HashIV,$this->ServiceURL);
     }
 
     //取得付款結果通知的方法
     function CheckOutFeedback() {
-        return $arFeedback = ECPay_CheckOutFeedback::CheckOut(array_merge($_POST, array('EncryptType' => $this->EncryptType)),$this->HashKey,$this->HashIV,0);
+		exit("FCBPay.Payment.Integration.php - TPaySDK - CheckOutFeedback");
+        return $arFeedback = Pay_CheckOutFeedback::CheckOut(array_merge($_POST, array('EncryptType' => $this->EncryptType)),$this->HashKey,$this->HashIV,0);
     }
 
     //訂單查詢作業
     function QueryTradeInfo() {
-        return $arFeedback = ECPay_QueryTradeInfo::CheckOut(array_merge($this->Query,array('MerchantID' => $this->MerchantID, 'EncryptType' => $this->EncryptType)) ,$this->HashKey ,$this->HashIV ,$this->ServiceURL) ;
+		exit("FCBPay.Payment.Integration.php - TPaySDK - QueryTradeInfo");
+        return $arFeedback = Pay_QueryTradeInfo::CheckOut(array_merge($this->Query,array('MerchantID' => $this->MerchantID, 'EncryptType' => $this->EncryptType)) ,$this->HashKey ,$this->HashIV ,$this->ServiceURL) ;
     }
 
     //信用卡定期定額訂單查詢的方法
     function QueryPeriodCreditCardTradeInfo() {
-        return $arFeedback = ECPay_QueryPeriodCreditCardTradeInfo::CheckOut(array_merge($this->Query,array('MerchantID' => $this->MerchantID, 'EncryptType' => $this->EncryptType)) ,$this->HashKey ,$this->HashIV ,$this->ServiceURL);
+		exit("FCBPay.Payment.Integration.php - TPaySDK - QueryPeriodCreditCardTradeInfo");
+        return $arFeedback = Pay_QueryPeriodCreditCardTradeInfo::CheckOut(array_merge($this->Query,array('MerchantID' => $this->MerchantID, 'EncryptType' => $this->EncryptType)) ,$this->HashKey ,$this->HashIV ,$this->ServiceURL);
     }
 
     //信用卡關帳/退刷/取消/放棄的方法
     function DoAction() {
-        return $arFeedback = ECPay_DoAction::CheckOut(array_merge($this->Action,array('MerchantID' => $this->MerchantID, 'EncryptType' => $this->EncryptType)) ,$this->HashKey ,$this->HashIV ,$this->ServiceURL);
+		exit("FCBPay.Payment.Integration.php - TPaySDK - DoAction");
+        return $arFeedback = Pay_DoAction::CheckOut(array_merge($this->Action,array('MerchantID' => $this->MerchantID, 'EncryptType' => $this->EncryptType)) ,$this->HashKey ,$this->HashIV ,$this->ServiceURL);
     }
 
     //合作特店申請撥款
     function AioCapture(){
-        return $arFeedback = ECPay_AioCapture::Capture(array_merge($this->Capture,array('MerchantID' => $this->MerchantID, 'EncryptType' => $this->EncryptType)) ,$this->HashKey ,$this->HashIV ,$this->ServiceURL);
+		exit("FCBPay.Payment.Integration.php - TPaySDK - AioCapture");
+        return $arFeedback = Pay_AioCapture::Capture(array_merge($this->Capture,array('MerchantID' => $this->MerchantID, 'EncryptType' => $this->EncryptType)) ,$this->HashKey ,$this->HashIV ,$this->ServiceURL);
     }
 
     //下載會員對帳媒體檔
     function TradeNoAio($target = "_self"){
+		exit("FCBPay.Payment.Integration.php - TPaySDK - TradeNoAio");
         $arParameters = array_merge( array('MerchantID' => $this->MerchantID, 'EncryptType' => $this->EncryptType) ,$this->TradeNo);
-        ECPay_TradeNoAio::CheckOut($target,$arParameters,$this->HashKey,$this->HashIV,$this->ServiceURL);
+        Pay_TradeNoAio::CheckOut($target,$arParameters,$this->HashKey,$this->HashIV,$this->ServiceURL);
     }
 
     //查詢信用卡單筆明細紀錄
     function QueryTrade(){
-        return $arFeedback = ECPay_QueryTrade::CheckOut(array_merge($this->Trade,array('MerchantID' => $this->MerchantID, 'EncryptType' => $this->EncryptType)) ,$this->HashKey ,$this->HashIV ,$this->ServiceURL);
+		exit("FCBPay.Payment.Integration.php - TPaySDK - QueryTrade");
+        return $arFeedback = Pay_QueryTrade::CheckOut(array_merge($this->Trade,array('MerchantID' => $this->MerchantID, 'EncryptType' => $this->EncryptType)) ,$this->HashKey ,$this->HashIV ,$this->ServiceURL);
     }
 
     //下載信用卡撥款對帳資料檔
     function FundingReconDetail($target = "_self"){
+		exit("FCBPay.Payment.Integration.php - TPaySDK - FundingReconDetail");
         $arParameters = array_merge( array('MerchantID' => $this->MerchantID, 'EncryptType' => $this->EncryptType) ,$this->Funding);
-        ECPay_FundingReconDetail::CheckOut($target,$arParameters,$this->HashKey,$this->HashIV,$this->ServiceURL);
+        Pay_FundingReconDetail::CheckOut($target,$arParameters,$this->HashKey,$this->HashIV,$this->ServiceURL);
     }
 
     // 產生訂單(站內付) v1.0.11128 wesley
     function CreateTrade() {
+		exit("FCBPay.Payment.Integration.php - TPaySDK - CreateTrade");
         $arParameters = array_merge( array('MerchantID' => $this->MerchantID, 'EncryptType' => $this->EncryptType) ,$this->Send);
-        return $arFeedback = ECPay_CreateTrade::CheckOut($arParameters,$this->SendExtend,$this->HashKey,$this->HashIV,$this->ServiceURL);
+        return $arFeedback = Pay_CreateTrade::CheckOut($arParameters,$this->SendExtend,$this->HashKey,$this->HashIV,$this->ServiceURL);
     }
 }
 
 /**
 * 抽象類
 */
-abstract class ECPay_Aio
+abstract class Pay_Aio
 {
 
     protected static function ServerPost($parameters ,$ServiceURL) {
+		exit("FCBPay.Payment.Integration.php - ECPay_Aio - ServerPost");
         $ch = curl_init();
 
         if (FALSE === $ch) {
@@ -625,11 +597,7 @@ abstract class ECPay_Aio
     }
 
     protected static function HtmlEncode($target = "_self", $arParameters = array(), $ServiceURL = '', $szCheckMacValue = '', $paymentButton = '') {
-		var_dump($arParameters);
-		echo "-----------------------------";
-		var_dump($ServiceURL);
-		return $szHtml;
-        //生成表單，自動送出
+		//生成表單，自動送出
         $szHtml =  '<!DOCTYPE html>';
         $szHtml .= '<html>';
         $szHtml .=     '<head>';
@@ -667,43 +635,37 @@ abstract class ECPay_Aio
 /**
 *  產生訂單
 */
-class ECPay_Send extends ECPay_Aio
+class Pay_Send extends Pay_Aio
 {
     //付款方式物件
     public static $PaymentObj ;
 
     protected static function process($arParameters = array(),$arExtend = array())
     {
-		//待改 kai
-        //宣告付款方式物件
-        $PaymentMethod    = 'ECPay_'.$arParameters['PayType'];
-        self::$PaymentObj = new $PaymentMethod;
         //檢查參數
-        //$arParameters = self::$PaymentObj->check_string($arParameters);
-        //檢查商品
-        //$arParameters = self::$PaymentObj->check_goods($arParameters);
+        $arParameters = self::check_string($arParameters);
         //檢查各付款方式的額外參數&電子發票參數
         //$arExtend = self::$PaymentObj->check_extend_string($arExtend,$arParameters['InvoiceMark']);
-        //過濾
-        $arExtend = self::$PaymentObj->filter_string($arExtend,$arParameters['InvoiceMark']);
         //合併共同參數及延伸參數
-        return array_merge($arParameters,$arExtend) ;
+		$P = array_merge($arParameters,$arExtend);
+		//過濾多餘參數並產生數位簽章
+		$OutP = self::filter_Arr($P);
+        return $OutP;
     }
 
 
     static function CheckOut($target = "_self",$arParameters = array(),$arExtend = array(),$HashKey='',$HashIV='',$ServiceURL=''){
-        $arParameters = self::process($arParameters,$arExtend);
-        //產生檢查碼
-        //$szCheckMacValue = ECPay_CheckMacValue::generate($arParameters,$HashKey,$HashIV,$arParameters['EncryptType']);
+		$arParameters = self::process($arParameters,$arExtend);
         //生成表單，自動送出
 		$szCheckMacValue = "";
-        $szHtml = parent::HtmlEncode($target, $arParameters, $ServiceURL, $szCheckMacValue, '') ;
+        $szHtml = parent::HtmlEncode($target, $arParameters, $ServiceURL, $szCheckMacValue, '確認結帳') ;
         echo $szHtml ;
         exit;
     }
 
     static function CheckOutString($paymentButton = 'Submit',$target = "_self",$arParameters = array(),$arExtend = array(),$HashKey='',$HashIV='',$ServiceURL=''){
 
+		exit("FCBPay.Payment.Integration.php - ECPay_Send - CheckOutString");
         $arParameters = self::process($arParameters,$arExtend);
         //產生檢查碼
         $szCheckMacValue = ECPay_CheckMacValue::generate($arParameters,$HashKey,$HashIV,$arParameters['EncryptType']);
@@ -712,11 +674,74 @@ class ECPay_Send extends ECPay_Aio
         $szHtml = parent::HtmlEncode($target, $arParameters, $ServiceURL, $szCheckMacValue, $paymentButton) ;
         return  $szHtml ;
     }
+	
+	//檢查共同參數
+    static function check_string($arParameters = array()){
+
+		$PayType = $arParameters['PayType'];
+		$arErrors = array();
+        if (strlen($arParameters['PlatFormId']) == 0) {
+            array_push($arErrors, '特店編號為空值');
+        }
+        if (strlen($arParameters['PlatFormId']) > 40) {
+            array_push($arErrors, '特店編號長度最大為40');
+        }
+		if (strlen($arParameters['PayType']) == 0) {
+            array_push($arErrors, '付款類型為空值');
+        }
+        if (strlen($arParameters['OrderId']) == 0) {
+            array_push($arErrors, '訂單編號為空值');
+        }
+		if (strlen($arParameters['OrderId']) > 20) {
+            array_push($arErrors, '訂單編號長度最大為20');
+        }
+		if (!is_Numeric($arParameters['Amount'])) {
+            array_push($arErrors, '金額格式錯誤');
+        }
+
+        if (sizeof($arErrors)>0) throw new Exception(join('<br>', $arErrors));
+
+        return $arParameters;
+    }
+	
+	//檢查共同參數
+    static function filter_Arr($Parameters = array()){
+
+		$require = array(
+		"PlatFormId","PayType","OrderId","Amount","ShippingFee","ProductName",
+        "PayTitle","HeadquarterID","StatesID","BranchAndPlatformID","BusinessUnit","SubMerchantID",
+        "OrderArea","OrderAddress","OrderReceiver","OrderEmail","ClientIP",
+        "ResURL","TimeZone","CreateTime","TransTime","NextURL","InAccountNo","OutAccountNo",
+        "OutBank","ID","FunCode","Apply","DueDate","AutoCap","TransType","PeriodNum",
+        "BonusActionCode","TimeoutSecs","LagSelect","CustomResultPage",
+        "Terminal","ProductDetail", "Buyer_Identifier","DonateMark","CUSTOMEREMAIL","CarrierId1",
+        "NPOBAN" ,"Amount_TaxRate");
+		
+		$paras = array();
+		$Resultparas = array();
+		foreach($require as $k=>$v) {
+			if(array_key_exists($v,$Parameters))
+			{
+				$Resultparas[$v] = $Parameters[$v];
+				if(!is_null($Parameters[$v]) && strlen($Parameters[$v])>0)
+				{
+					$paras[$v] = $Parameters[$v]; 
+				}
+			}	
+		}
+		uksort( $paras, 'strnatcasecmp' );
+		//var_dump(urldecode($Parameters['hashK'].http_build_query($paras)));
+		$HashKey = strtoupper(hash('sha256', urldecode($Parameters['hashK'].http_build_query($paras))));
+		$Resultparas['HashKey'] = $HashKey;
+		var_dump($Resultparas);
+        return $Resultparas;
+    }
 }
 
-class ECPay_CheckOutFeedback extends ECPay_Aio
+class Pay_CheckOutFeedback extends Pay_Aio
 {
     static function CheckOut($arParameters = array(),$HashKey = '' ,$HashIV = ''){
+		exit("FCBPay.Payment.Integration.php - ECPay_CheckOutFeedback - ECPay_CheckOutFeedback");
         // 變數宣告。
         $arErrors = array();
         $arFeedback = array();
@@ -756,9 +781,10 @@ class ECPay_CheckOutFeedback extends ECPay_Aio
     }
 }
 
-class ECPay_QueryTradeInfo extends ECPay_Aio
+class Pay_QueryTradeInfo extends Pay_Aio
 {
     static function CheckOut($arParameters = array(),$HashKey ='',$HashIV ='',$ServiceURL = ''){
+		exit("FCBPay.Payment.Integration.php - ECPay_QueryTradeInfo - CheckOut");
         $arErrors = array();
         $arParameters['TimeStamp'] = time();
         $arFeedback = array();
@@ -806,9 +832,10 @@ class ECPay_QueryTradeInfo extends ECPay_Aio
     }
 }
 
-class ECPay_QueryPeriodCreditCardTradeInfo extends ECPay_Aio
+class Pay_QueryPeriodCreditCardTradeInfo extends Pay_Aio
 {
     static function CheckOut($arParameters = array(),$HashKey ='',$HashIV ='',$ServiceURL = ''){
+		exit("FCBPay.Payment.Integration.php - ECPay_QueryPeriodCreditCardTradeInfo - CheckOut");
         $arErrors = array();
         $arParameters['TimeStamp'] = time();
         $arFeedback = array();
@@ -842,9 +869,10 @@ class ECPay_QueryPeriodCreditCardTradeInfo extends ECPay_Aio
     }
 }
 
-class ECPay_DoAction extends ECPay_Aio
+class Pay_DoAction extends Pay_Aio
 {
     static function CheckOut($arParameters = array(),$HashKey ='',$HashIV ='',$ServiceURL = ''){
+		exit("FCBPay.Payment.Integration.php - ECPay_DoAction - CheckOut");
                 // 變數宣告。
         $arErrors = array();
         $arFeedback = array();
@@ -881,10 +909,11 @@ class ECPay_DoAction extends ECPay_Aio
     }
 }
 
-class ECPay_AioCapture extends ECPay_Aio
+class Pay_AioCapture extends Pay_Aio
 {
     static function Capture($arParameters=array(),$HashKey='',$HashIV='',$ServiceURL=''){
 
+		exit("FCBPay.Payment.Integration.php - ECPay_AioCapture - Capture");
         $arErrors   = array();
         $arFeedback = array();
 
@@ -914,9 +943,11 @@ class ECPay_AioCapture extends ECPay_Aio
     }
 }
 
-class ECPay_TradeNoAio extends ECPay_Aio
+class Pay_TradeNoAio extends Pay_Aio
 {
     static function CheckOut($target = "_self",$arParameters = array(),$HashKey='',$HashIV='',$ServiceURL=''){
+		
+		exit("FCBPay.Payment.Integration.php - ECPay_TradeNoAio - CheckOut");
         //產生檢查碼
         $EncryptType = $arParameters['EncryptType'];
         unset($arParameters['EncryptType']);
@@ -930,9 +961,10 @@ class ECPay_TradeNoAio extends ECPay_Aio
     }
 }
 
-class ECPay_QueryTrade extends ECPay_Aio
+class Pay_QueryTrade extends Pay_Aio
 {
     static function CheckOut($arParameters = array(),$HashKey ='',$HashIV ='',$ServiceURL = ''){
+		exit("FCBPay.Payment.Integration.php - ECPay_QueryTrade - CheckOut");
         $arErrors = array();
         $arFeedback = array();
         $arConfirmArgs = array();
@@ -963,9 +995,10 @@ class ECPay_QueryTrade extends ECPay_Aio
     }
 }
 
-class ECPay_FundingReconDetail extends ECPay_Aio
+class Pay_FundingReconDetail extends Pay_Aio
 {
     static function CheckOut($target = "_self",$arParameters = array(),$HashKey='',$HashIV='',$ServiceURL=''){
+		exit("FCBPay.Payment.Integration.php - ECPay_FundingReconDetail - CheckOut");
         //產生檢查碼
         $EncryptType = $arParameters["EncryptType"];
         unset($arParameters["EncryptType"]);
@@ -979,13 +1012,14 @@ class ECPay_FundingReconDetail extends ECPay_Aio
     }
 }
 
-class ECPay_CreateTrade extends ECPay_Aio
+class Pay_CreateTrade extends Pay_Aio
 {
     //付款方式物件
     public static $PaymentObj ;
 
     protected static function process($arParameters = array(),$arExtend = array())
     {
+		exit("FCBPay.Payment.Integration.php - ECPay_CreateTrade - process");
         //宣告付款方式物件
         $PaymentMethod    = 'ECPay_'.$arParameters['ChoosePayment'];
         self::$PaymentObj = new $PaymentMethod;
@@ -1008,6 +1042,7 @@ class ECPay_CreateTrade extends ECPay_Aio
 
     static function CheckOut($arParameters = array(),$arExtend = array(),$HashKey='',$HashIV='',$ServiceURL=''){
 
+		exit("FCBPay.Payment.Integration.php - ECPay_CreateTrade - CheckOut");
         $arErrors   = array();
         $arFeedback = array();
         $szCheckMacValueReturn = '' ;
@@ -1053,7 +1088,7 @@ class ECPay_CreateTrade extends ECPay_Aio
     }
 }
 
-Abstract class ECPay_Verification
+Abstract class Pay_Verification
 {
     // 電子發票延伸參數。
     public $arInvoice = array(
@@ -1087,6 +1122,7 @@ Abstract class ECPay_Verification
     //檢查共同參數
     public function check_string($arParameters = array()){
 
+		exit("FCBPay.Payment.Integration.php - ECPay_Verification - CheckOut");
         $arErrors = array();
         if (strlen($arParameters['MerchantID']) == 0) {
             array_push($arErrors, 'MerchantID is required.');
@@ -1154,6 +1190,8 @@ Abstract class ECPay_Verification
 
     //檢查延伸參數
     public function check_extend_string($arExtend = array(),$InvoiceMark = ''){
+		
+		exit("FCBPay.Payment.Integration.php - ECPay_Verification - check_extend_string");
         //沒設定參數的話，就給預設參數
         foreach ($this->arPayMentExtend as $key => $value) {
             if(!isset($arExtend[$key])) $arExtend[$key] = $value;
@@ -1167,6 +1205,7 @@ Abstract class ECPay_Verification
 
     //檢查商品
     public function check_goods($arParameters = array()){
+		exit("FCBPay.Payment.Integration.php - ECPay_Verification - check_goods");
         // 檢查產品名稱。
         $szItemName = '';
         $arErrors   = array();
@@ -1196,6 +1235,7 @@ Abstract class ECPay_Verification
 
     //過濾多餘參數
     public function filter_string($arExtend = array(),$InvoiceMark = ''){
+		exit("FCBPay.Payment.Integration.php - ECPay_Verification - filter_string");
         $arPayMentExtend = array_merge(array_keys($this->arPayMentExtend), ($InvoiceMark == '') ? array() : $this->arInvoice);
         foreach ($arExtend as $key => $value) {
             if (!in_array($key,$arPayMentExtend )) {
@@ -1208,6 +1248,7 @@ Abstract class ECPay_Verification
 
     //檢查電子發票參數
     public function check_invoiceString($arExtend = array()){
+		exit("FCBPay.Payment.Integration.php - ECPay_Verification - check_invoiceString");
         $arErrors = array();
 
         // 廠商自訂編號RelateNumber(不可為空)
@@ -1235,10 +1276,10 @@ Abstract class ECPay_Verification
 
         // 載具類別CarruerType(預設為None)
         if(!array_key_exists('CarruerType', $arExtend)){
-            $arExtend['CarruerType'] = ECPay_CarruerType::None ;
+            $arExtend['CarruerType'] = Pay_CarruerType::None ;
         }else{
             //有設定統一編號的話，載具類別不可為合作特店載具或自然人憑證載具。
-            $notPrint = array(ECPay_CarruerType::Member, ECPay_CarruerType::Citizen);
+            $notPrint = array(Pay_CarruerType::Member, Pay_CarruerType::Citizen);
             if(strlen($arExtend['CustomerIdentifier']) > 0 && in_array($arExtend['CarruerType'], $notPrint)){
                 array_push($arErrors, "CarruerType should NOT be Member or Citizen.");
             }
@@ -1250,24 +1291,24 @@ Abstract class ECPay_Verification
         }
         // 捐贈註記 Donation(預設為No)
         if(!array_key_exists('Donation', $arExtend)){
-            $arExtend['Donation'] = ECPay_Donation::No ;
+            $arExtend['Donation'] = Pay_Donation::No ;
         }else{
             //若有帶統一編號，不可捐贈
-            if(strlen($arExtend['CustomerIdentifier']) > 0 && $arExtend['Donation'] != ECPay_Donation::No){
+            if(strlen($arExtend['CustomerIdentifier']) > 0 && $arExtend['Donation'] != Pay_Donation::No){
                 array_push($arErrors, "Donation should be No.");
             }
         }
 
         // 列印註記Print(預設為No)
         if(!array_key_exists('Print', $arExtend)){
-            $arExtend['Print'] = ECPay_PrintMark::No;
+            $arExtend['Print'] = Pay_PrintMark::No;
         }else{
             //捐贈註記為捐贈(Yes)時，請設定不列印(No)
-            if($arExtend['Donation'] == ECPay_Donation::Yes && $arExtend['Print'] != ECPay_PrintMark::No){
+            if($arExtend['Donation'] == Pay_Donation::Yes && $arExtend['Print'] != Pay_PrintMark::No){
                 array_push($arErrors, "Print should be No.");
             }
             // 統一編號不為空字串時，請設定列印(Yes)
-            if(strlen($arExtend['CustomerIdentifier']) > 0 && $arExtend['Print'] != ECPay_PrintMark::Yes){
+            if(strlen($arExtend['CustomerIdentifier']) > 0 && $arExtend['Print'] != Pay_PrintMark::Yes){
                 array_push($arErrors, "Print should be Yes.");
             }
         }
@@ -1279,7 +1320,7 @@ Abstract class ECPay_Verification
                   array_push($arErrors, "CustomerName max length as 60.");
             }
             // 列印註記為列印(Yes)時，此參數不可為空字串
-            if($arExtend['Print'] == ECPay_PrintMark::Yes && strlen($arExtend['CustomerName']) == 0){
+            if($arExtend['Print'] == Pay_PrintMark::Yes && strlen($arExtend['CustomerName']) == 0){
                 array_push($arErrors, "CustomerName is required.");
             }
         }
@@ -1292,7 +1333,7 @@ Abstract class ECPay_Verification
                   array_push($arErrors, "CustomerAddr max length as 200.");
             }
             // 列印註記為列印(Yes)時，此參數不可為空字串
-            if($arExtend['Print'] == ECPay_PrintMark::Yes && strlen($arExtend['CustomerAddr']) == 0){
+            if($arExtend['Print'] == Pay_PrintMark::Yes && strlen($arExtend['CustomerAddr']) == 0){
                 array_push($arErrors, "CustomerAddr is required.");
             }
         }
@@ -1321,10 +1362,10 @@ Abstract class ECPay_Verification
             $arExtend['ClearanceMark'] = '';
         }else{
             //課稅類別為零稅率(Zero)時，ClearanceMark不可為空字串
-            if($arExtend['TaxType'] == ECPay_TaxType::Zero && ($arExtend['ClearanceMark'] != ECPay_ClearanceMark::Yes || $arExtend['ClearanceMark'] != ECPay_ClearanceMark::No)) {
+            if($arExtend['TaxType'] == Pay_TaxType::Zero && ($arExtend['ClearanceMark'] != ECPay_ClearanceMark::Yes || $arExtend['ClearanceMark'] != ECPay_ClearanceMark::No)) {
                 array_push($arErrors, "ClearanceMark is required.");
             }
-            if (strlen($arExtend['ClearanceMark']) > 0 && $arExtend['TaxType'] != ECPay_TaxType::Zero) {
+            if (strlen($arExtend['ClearanceMark']) > 0 && $arExtend['TaxType'] != Pay_TaxType::Zero) {
                 array_push($arErrors, "Please remove ClearanceMark.");
             }
         }
@@ -1335,17 +1376,17 @@ Abstract class ECPay_Verification
         } else {
             switch ($arExtend['CarruerType']) {
                 // 載具類別為無載具(None)或會員載具(Member)時，系統自動忽略載具編號
-                case ECPay_CarruerType::None:
-                case ECPay_CarruerType::Member:
+                case Pay_CarruerType::None:
+                case Pay_CarruerType::Member:
                 break;
                 // 載具類別為買受人自然人憑證(Citizen)時，請設定自然人憑證號碼，前2碼為大小寫英文，後14碼為數字
-                case ECPay_CarruerType::Citizen:
+                case Pay_CarruerType::Citizen:
                     if (!preg_match('/^[a-zA-Z]{2}\d{14}$/', $arExtend['CarruerNum'])){
                         array_push($arErrors, "Invalid CarruerNum.");
                     }
                 break;
                 // 載具類別為買受人手機條碼(Cellphone)時，請設定手機條碼，第1碼為「/」，後7碼為大小寫英文、數字、「+」、「-」或「.」
-                case ECPay_CarruerType::Cellphone:
+                case Pay_CarruerType::Cellphone:
                     if (!preg_match('/^\/{1}[0-9a-zA-Z+-.]{7}$/', $arExtend['CarruerNum'])) {
                         array_push($arErrors, "Invalid CarruerNum.");
                     }
@@ -1359,7 +1400,7 @@ Abstract class ECPay_Verification
         // 愛心碼 LoveCode(預設為空字串)
         if(!array_key_exists('LoveCode', $arExtend)) $arExtend['LoveCode'] = '';
         // 捐贈註記為捐贈(Yes)時，參數長度固定3~7碼，請設定全數字或第1碼大小寫「X」，後2~6碼全數字
-        if ($arExtend['Donation'] == ECPay_Donation::Yes) {
+        if ($arExtend['Donation'] == Pay_Donation::Yes) {
             if (!preg_match('/^([xX]{1}[0-9]{2,6}|[0-9]{3,7})$/', $arExtend['LoveCode'])) {
                 array_push($arErrors, "Invalid LoveCode.");
             }
@@ -1404,8 +1445,8 @@ Abstract class ECPay_Verification
                 }
             }
 
-            if ($arExtend['TaxType'] == ECPay_TaxType::Mix) {
-                if (in_array(ECPay_TaxType::Dutiable, $tmpItemTaxType) and in_array(ECPay_TaxType::Free, $tmpItemTaxType)) {
+            if ($arExtend['TaxType'] == Pay_TaxType::Mix) {
+                if (in_array(Pay_TaxType::Dutiable, $tmpItemTaxType) and in_array(Pay_TaxType::Free, $tmpItemTaxType)) {
                     // Do nothing
                 }  else {
                     $tmpItemTaxType = array();
@@ -1449,6 +1490,7 @@ Abstract class ECPay_Verification
      */
     public static function ecpay_urlencode($sParameters) {
 
+		exit("FCBPay.Payment.Integration.php - ECPay_Verification - ecpay_urlencode");
         // URL Encode編碼
         $sParameters = urlencode($sParameters);
 
@@ -1463,6 +1505,7 @@ Abstract class ECPay_Verification
 
     // 是否支援 IgnorePayment 參數
     private function support_ignore_payment($arParameters = array()){
+		exit("FCBPay.Payment.Integration.php - ECPay_Verification - support_ignore_payment");
         $arSupportPayments = array(
             TPay_PaymentMethod::ALL,
             TPay_PaymentMethod::Credit,
@@ -1474,7 +1517,7 @@ Abstract class ECPay_Verification
 /**
 *  付款方式：超商代碼
 */
-class ECPay_CVS extends ECPay_Verification
+class ECPay_CVS extends Pay_Verification
 {
     public  $arPayMentExtend = array(
                             'Desc_1'           =>'',
@@ -1488,6 +1531,7 @@ class ECPay_CVS extends ECPay_Verification
 
     // 過濾多餘參數
     function filter_string($arExtend = array(),$InvoiceMark = ''){
+		exit("FCBPay.Payment.Integration.php - ECPay_CVS - filter_string");
         $arExtend = parent::filter_string($arExtend, $InvoiceMark);
         return $arExtend ;
     }
@@ -1496,8 +1540,9 @@ class ECPay_CVS extends ECPay_Verification
 /**
 * 付款方式 : BARCODE
 */
-class ECPay_BARCODE extends ECPay_Verification
+class ECPay_BARCODE extends Pay_Verification
 {
+	
     public  $arPayMentExtend = array(
                             'Desc_1'           =>'',
                             'Desc_2'           =>'',
@@ -1510,6 +1555,7 @@ class ECPay_BARCODE extends ECPay_Verification
 
     //過濾多餘參數
     function filter_string($arExtend = array(),$InvoiceMark = ''){
+		exit("FCBPay.Payment.Integration.php - ECPay_BARCODE - filter_string");
         $arExtend = parent::filter_string($arExtend, $InvoiceMark);
         return $arExtend ;
     }
@@ -1518,7 +1564,7 @@ class ECPay_BARCODE extends ECPay_Verification
 /**
 *  付款方式 ATM
 */
-class ECPay_ATM extends ECPay_Verification
+class ECPay_ATM extends Pay_Verification
 {
     public  $arPayMentExtend = array(
                             'ExpireDate'       => 3,
@@ -1528,6 +1574,7 @@ class ECPay_ATM extends ECPay_Verification
 
     //過濾多餘參數
     function filter_string($arExtend = array(),$InvoiceMark = ''){
+		exit("FCBPay.Payment.Integration.php - ECPay_ATM - filter_string");
         $arExtend = parent::filter_string($arExtend, $InvoiceMark);
         return $arExtend ;
     }
@@ -1536,12 +1583,13 @@ class ECPay_ATM extends ECPay_Verification
 /**
 *  付款方式 WebATM
 */
-class ECPay_WebATM extends ECPay_Verification
+class ECPay_WebATM extends Pay_Verification
 {
     public  $arPayMentExtend = array();
 
     //過濾多餘參數
     function filter_string($arExtend = array(),$InvoiceMark = ''){
+		exit("FCBPay.Payment.Integration.php - ECPay_WebATM - filter_string");
         $arExtend = parent::filter_string($arExtend, $InvoiceMark);
         return $arExtend ;
     }
@@ -1550,7 +1598,7 @@ class ECPay_WebATM extends ECPay_Verification
 /**
 * 付款方式 : 信用卡
 */
-class ECPay_Credit extends ECPay_Verification
+class ECPay_Credit extends Pay_Verification
 {
     public $arPayMentExtend = array(
                                     "CreditInstallment" => '',
@@ -1568,6 +1616,7 @@ class ECPay_Credit extends ECPay_Verification
                                 );
 
     function filter_string($arExtend = array(),$InvoiceMark = ''){
+		exit("FCBPay.Payment.Integration.php - ECPay_Credit - filter_string");
         $arExtend = parent::filter_string($arExtend, $InvoiceMark);
         return $arExtend ;
     }
@@ -1576,11 +1625,12 @@ class ECPay_Credit extends ECPay_Verification
 /**
 *  付款方式：全功能
 */
-class ECPay_ALL extends ECPay_Verification
+class ECPay_ALL extends Pay_Verification
 {
     public  $arPayMentExtend = array();
 
     function filter_string($arExtend = array(),$InvoiceMark = ''){
+		exit("FCBPay.Payment.Integration.php - ECPay_ALL - filter_string");
         return $arExtend ;
     }
 }
@@ -1590,11 +1640,12 @@ class ECPay_ALL extends ECPay_Verification
 /**
 * 付款方式 : Google Pay
 */
-class ECPay_GooglePay extends ECPay_Verification
+class ECPay_GooglePay extends Pay_Verification
 {
     public $arPayMentExtend = array();
 
     function filter_string($arExtend = array(), $InvoiceMark = ''){
+		exit("FCBPay.Payment.Integration.php - ECPay_GooglePay - filter_string");
         $arExtend = parent::filter_string($arExtend, $InvoiceMark);
         return $arExtend ;
     }
@@ -1609,6 +1660,7 @@ if(!class_exists('ECPay_CheckMacValue', false))
     class ECPay_CheckMacValue{
 
         public static function generate($arParameters = array(),$HashKey = '' ,$HashIV = '',$encType = 0){
+			exit("FCBPay.Payment.Integration.php - ECPay_CheckMacValue - generate");
             $sMacValue = '' ;
 
             if(isset($arParameters))
@@ -1630,12 +1682,12 @@ if(!class_exists('ECPay_CheckMacValue', false))
 
                 // 編碼
                 switch ($encType) {
-                    case ECPay_EncryptType::ENC_SHA256:
+                    case Pay_EncryptType::ENC_SHA256:
                         // SHA256 編碼
                         $sMacValue = hash('sha256', $sMacValue);
                     break;
 
-                    case ECPay_EncryptType::ENC_MD5:
+                    case Pay_EncryptType::ENC_MD5:
                     default:
                     // MD5 編碼
                         $sMacValue = md5($sMacValue);
@@ -1652,6 +1704,7 @@ if(!class_exists('ECPay_CheckMacValue', false))
         */
         private static function merchantSort($a,$b)
         {
+			exit("FCBPay.Payment.Integration.php - ECPay_CheckMacValue - merchantSort");
             return strcasecmp($a, $b);
         }
 
@@ -1663,6 +1716,7 @@ if(!class_exists('ECPay_CheckMacValue', false))
          */
         public static function ecpay_urlencode($sParameters) {
 
+			exit("FCBPay.Payment.Integration.php - ECPay_CheckMacValue - ecpay_urlencode");
             // URL Encode編碼
             $sParameters = urlencode($sParameters);
 
@@ -1681,6 +1735,7 @@ if(!class_exists('ECPay_CheckMacValue', false))
         * 傳出    $sParameters    回傳取代後變數
         */
         public static function Replace_Symbol($sParameters){
+			exit("FCBPay.Payment.Integration.php - ECPay_CheckMacValue - Replace_Symbol");
             if(!empty($sParameters)){
 
                 $sParameters = str_replace('%2D', '-', $sParameters);

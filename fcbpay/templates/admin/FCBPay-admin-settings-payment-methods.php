@@ -17,7 +17,7 @@ defined('TPAY_PAYMENT_PLUGIN_PATH') || exit;
             <tbody>
             <?php
                 // 付款方式
-                foreach ($ecpay_payment_methods as $key => $value) {
+                foreach ($payment_methods as $key => $value) {
                     // 判斷是否勾選
                     $checked = '';
                     if (in_array($key, $payment_options)) {
