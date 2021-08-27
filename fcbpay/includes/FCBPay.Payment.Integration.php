@@ -509,8 +509,7 @@ class FCBPaySDK {
 
     //取得付款結果通知的方法
     function CheckOutFeedback() {
-		exit("FCBPay.Payment.Integration.php - TPaySDK - CheckOutFeedback");
-        return $arFeedback = Pay_CheckOutFeedback::CheckOut(array_merge($_POST, array('EncryptType' => $this->EncryptType)),$this->HashKey,$this->HashIV,0);
+		return $arFeedback = Pay_CheckOutFeedback::CheckOut(array_merge($_POST, array('EncryptType' => $this->EncryptType)),$this->HashKey,0);
     }
 
     //訂單查詢作業
@@ -740,44 +739,41 @@ class Pay_Send extends Pay_Aio
 
 class Pay_CheckOutFeedback extends Pay_Aio
 {
-    static function CheckOut($arParameters = array(),$HashKey = '' ,$HashIV = ''){
-		exit("FCBPay.Payment.Integration.php - ECPay_CheckOutFeedback - ECPay_CheckOutFeedback");
-        // 變數宣告。
+    static function CheckOut($arParameters = array(),$HashKey = ''){
+		// 變數宣告。
         $arErrors = array();
         $arFeedback = array();
         $szCheckMacValue = '';
 
         $EncryptType = $arParameters["EncryptType"];
-        unset($arParameters["EncryptType"]);
-
+        unset($arParameters["EncryptType"]);		
+		
         // 重新整理回傳參數。
         foreach ($arParameters as $keys => $value) {
-            if ($keys != 'CheckMacValue') {
-                if ($keys == 'PaymentType') {
-                    $value = str_replace('_CVS', '', $value);
-                    $value = str_replace('_BARCODE', '', $value);
-                    $value = str_replace('_CreditCard', '', $value);
-                }
-                if ($keys == 'PeriodType') {
-                    $value = str_replace('Y', 'Year', $value);
-                    $value = str_replace('M', 'Month', $value);
-                    $value = str_replace('D', 'Day', $value);
-                }
-                $arFeedback[$keys] = $value;
-            }
+            $arFeedback[$keys] = $value;
         }
+		//進行回傳加密驗證
+		$paras = array();
+		foreach($arFeedback as $k=>$v) {
+			if(!is_null($arFeedback[$k]) && strlen($arFeedback[$k])>0 && $k!="HashKey")
+			{
+				$paras[$k] = $arFeedback[$k]; 
+			}	
+		}
+		
+		uksort( $paras, 'strnatcasecmp' );
+		var_dump(urldecode($HashKey.http_build_query($paras)));
+		$CheckValue = strtoupper(hash('sha256', urldecode($HashKey.http_build_query($paras))));
 
-        $CheckMacValue = ECPay_CheckMacValue::generate($arParameters,$HashKey,$HashIV,$EncryptType);
-
-        if ($CheckMacValue != $arParameters['CheckMacValue']) {
-            array_push($arErrors, 'CheckMacValue verify fail.');
+        if ($CheckValue != $arParameters['HashKey']) {
+            array_push($arErrors, 'HASHKEY不符合.');
         }
 
         if (sizeof($arErrors) > 0) {
             throw new Exception(join('- ', $arErrors));
         }
 
-        return $arFeedback;
+        return $arParameters;
     }
 }
 

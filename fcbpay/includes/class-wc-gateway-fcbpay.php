@@ -34,7 +34,7 @@ class WC_Gateway_FCBPay extends WC_Payment_Gateway
 
     public function __construct()
     {
-        $this->id = 'tpay';
+        $this->id = 'fcbpay';
         $this->method_title = '電商收款通';
         $this->method_description = '電商收款通是第一銀行提供的整合支付平台，能協助你處理複雜的金流交易業務';
         $this->has_fields = true;
@@ -274,79 +274,86 @@ class WC_Gateway_FCBPay extends WC_Payment_Gateway
      */
     public function receive_response()
     {
-		exit("class-wc-gateway-fcbpay.php - WC_Gateway_FCBPay - receive_response");
-        $result_msg = '1|OK';
+		//異步通知接收回傳網址 /?wc-api=WC_Gateway_FCBpay
+		$result_msg = 'OK';
         $order = null;
         try {
             # Retrieve the check out result
             $data = array(
-                'hashKey' => $this->hash_key,
-                'hashIv'=> $this->ecpay_hash_iv,
+                'hashKey' => $this->hash_key
             );
-            $ecpay_feedback = $this->helper->getValidFeedback($data);
+            $pay_feedback = $this->helper->getValidFeedback($data);
 
-            if (count($ecpay_feedback) < 1) {
+            if (count($pay_feedback) < 1) {
                 throw new Exception('Get ECPay feedback failed.');
             } else {
                 # Get the cart order id
-                $cart_order_id = $ecpay_feedback['MerchantTradeNo'];
-                if ($this->ecpay_test_mode == 'yes') {
-                    $cart_order_id = substr($ecpay_feedback['MerchantTradeNo'], 12);
-                }
+                $OrderId = $pay_feedback['OrderId'];
 
                 # Get the cart order amount
-                $order = new WC_Order($cart_order_id);
-                $cart_amount = $order->get_total();
+                $order = new WC_Order($OrderId);
+                $totalamount = $order->get_total();
 
                 # Check the amounts
-                $ecpay_amount = $ecpay_feedback['TradeAmt'];
-                if (round($cart_amount) != $ecpay_amount) {
-                    throw new Exception('Order ' . $cart_order_id . ' amount are not identical.');
+                $reurn_amount = $pay_feedback['Amount'];
+                if (round($totalamount) != $reurn_amount) {
+                    throw new Exception('訂單號 ' . $OrderId . ' 回傳金額不一致.');
                 } else {
                     # Set the common comments
                     $comments = sprintf(
                         $this->tran('Payment Method : %s<br />Trade Time : %s<br />'),
-                        esc_html($ecpay_feedback['PaymentType']),
-                        esc_html($ecpay_feedback['TradeDate'])
+                        esc_html($pay_feedback['PayType']),
+                        esc_html($pay_feedback['TransTime'])
                     );
 
                     # Set the getting code comments
-                    $return_code = esc_html($ecpay_feedback['RtnCode']);
-                    $return_message = esc_html($ecpay_feedback['RtnMsg']);
+                    $ToolStatus = esc_html($pay_feedback['ToolStatus']);
+                    $ToolDesc = esc_html($pay_feedback['RtnMsg']);
+					$TransStatus = esc_html($pay_feedback['TransStatus']);
                     $get_code_result_comments = sprintf(
                         '交易狀態 : (%s)%s',
-                        $return_code,
-                        $return_message
+                        $ToolStatus,
+                        $ToolDesc
                     );
 
                     # Set the payment result comments
                     $payment_result_comments = sprintf(
                         '電商收款通付款結果(%s)%s',
-                        $return_code,
-                        $return_message
+                        $TransStatus,
+                        $ToolDesc
                     );
 
                     # Set the fail message
-                    $fail_msg = sprintf('Order %s Exception.(%s: %s)', $cart_order_id, $return_code, $return_message);
+                    $fail_msg = sprintf('Order %s Exception.(%s: %s)', $OrderId, $ToolStatus, $ToolDesc);
 
                     # Get ECPay payment method
-                    $ecpay_payment_method = $this->helper->getPaymentMethod($ecpay_feedback['PaymentType']);
+                    $PayType = $this->helper->getPaymentMethod($pay_feedback['PayType']);
 
                     # Set the order comments
 
                     //根據不同的支付方式做處理
-                    switch($ecpay_payment_method) {
-                        case TPay_PaymentMethod::CREDIT:
-                        case TPay_PaymentMethod::UNION:
-                        case TPay_PaymentMethod::IDP:
-                        case TPay_PaymentMethod::eATM:
-                        case TPay_PaymentMethod::REG:
-                        case TPay_PaymentMethod::CS:
-                        case TPay_PaymentMethod::WECHAT:
-                        case TPay_PaymentMethod::TWPAY:
-                        case TPay_PaymentMethod::JKOS:
-
-                    }
+                    switch ($PayType) {
+					case "CREDIT":
+					case "CREDIT_3":
+					case "CREDIT_6":
+					case "CREDIT_9":
+					case "CREDIT_12":
+					case "CREDIT_15":
+					case "CREDIT_18":
+					case "CREDIT_24":
+					case "CREDIT_30":
+					case "CREDIT_REWARD":
+						break;
+					case $this->getSdkPaymentMethod('unionpay'):
+					default:
+						throw new Exception('Invalid payment method.');
+						break;
+					}
+					if($ToolStatus == "0000" && $TransStatus == "2")
+					{
+						//更新訂單狀態
+						$order->update_status('Pay', '已付款');
+					}
                 }
             }
         } catch (Exception $e) {
@@ -357,7 +364,7 @@ class WC_Gateway_FCBPay extends WC_Payment_Gateway
             }
 
             # Set the failure result
-            $result_msg = '0|' . $error;
+            $result_msg = $error;
         }
         echo $result_msg;
         exit;

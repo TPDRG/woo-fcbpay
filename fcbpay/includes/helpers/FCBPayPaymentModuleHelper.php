@@ -250,8 +250,7 @@ class FCBPayPaymentModuleHelper
      */
     public function only($source = array(), $whiteList = array())
     {
-		exit("FCBPayPaymentModuleHelper.php - FCBPayPaymentModuleHelper - only");
-        $variables = array();
+		$variables = array();
 
         // Return empty array when do not set white list
         if (empty($whiteList) === true) {

@@ -100,7 +100,7 @@ class FCBPayPaymentHelper extends FCBPayPaymentModuleHelper
         'processing' => '', // 處理中(已付款)
         'onHold'     => '', // 保留
         'cancelled'  => '', // 取消
-        'ecpay'      => '', // ECPay Shipping
+        'Pay'        => '',   // 已付款
     );
 
     /**
@@ -276,16 +276,8 @@ class FCBPayPaymentHelper extends FCBPayPaymentModuleHelper
      */
     public function getValidFeedback($data)
     {
-		exit("FCBPayPaymentHelper.php - FCBPayPaymentHelper - getValidFeedback");
+		
         $feedback = $this->getFeedback($data); // feedback
-        $data['merchantTradeNo'] = $feedback['MerchantTradeNo'];
-        $info = $this->getTradeInfo($data); // Trade info
-
-        // Check the amount
-        if (!$this->validAmount($feedback['TradeAmt'], $info['TradeAmt'])) {
-            throw new Exception('Invalid ' . $this->provider . ' feedback.(1)');
-        }
-
         return $feedback;
     }
 
@@ -701,31 +693,22 @@ class FCBPayPaymentHelper extends FCBPayPaymentModuleHelper
      */
     public function getFeedback($data)
     {
-		exit("FCBPayPaymentHelper.php - FCBPayPaymentHelper - getFeedback");
-        // Filter inputs
+		// Filter inputs
         $whiteList = array(
-            'hashKey',
-            'hashIv',
+            'hashKey'
         );
         $inputs = $this->only($data, $whiteList);
 
         // Set SDK parameters
         $this->sdk->MerchantID = $this->getMerchantId();
         $this->sdk->HashKey = $inputs['hashKey'];
-        $this->sdk->HashIV = $inputs['hashIv'];
-        $this->sdk->EncryptType = Pay_EncryptType::ENC_SHA256;
         try {
             $feedback = $this->sdk->CheckOutFeedback();
         } catch (Exception $e) {
             $error = $e->getMessage();
-            if ($error === 'CheckMacValue verify fail.') {
-                // 定期定額可能有 MD5 壓碼的舊訂單，增加 MD5 壓碼相容性
-                $this->sdk->EncryptType = Pay_EncryptType::ENC_MD5;
-                $feedback = $this->sdk->CheckOutFeedback();
-            } else {
-                throw new Exception ($error);
-            }
+            throw new Exception ($error);
         }
+
         if (count($feedback) < 1) {
             throw new Exception($this->provider . ' feedback is empty.');
         }
