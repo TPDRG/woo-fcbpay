@@ -52,6 +52,14 @@ class WC_Gateway_FCBPay extends WC_Payment_Gateway
         $this->merchant_id     = $this->get_option('merchant_id');
         $this->hash_key        = $this->get_option('hash_key');
 		$this->ResURL        = $this->get_option('ResURL');
+		$this->InAccountNo        = $this->get_option('InAccountNo');
+		$this->checkType        = $this->get_option('checkType');
+		$this->InAccountNo2        = $this->get_option('InAccountNo2');
+		$this->CSInAccountNo1        = $this->get_option('CSInAccountNo1');
+		$this->CSInAccountNo2        = $this->get_option('CSInAccountNo2');
+		$this->CSInAccountNo3        = $this->get_option('CSInAccountNo3');
+		$this->Terminal        = $this->get_option('Terminal');
+		
 		
         # Load the helper
         $this->helper = FCBPay_PaymentCommon::getHelper();
@@ -241,7 +249,7 @@ class WC_Gateway_FCBPay extends WC_Payment_Gateway
 				$this->BonusActionCode = sanitize_text_field($_POST['BonusActionCode']);
 			}
 			else{
-				$this->BonusActionCode = '1234567';
+				$this->BonusActionCode = '';
 			}
             return true;
         } else {
@@ -283,7 +291,7 @@ class WC_Gateway_FCBPay extends WC_Payment_Gateway
                 'hashKey' => $this->hash_key
             );
             $pay_feedback = $this->helper->getValidFeedback($data);
-
+			
             if (count($pay_feedback) < 1) {
                 throw new Exception('Get ECPay feedback failed.');
             } else {
@@ -299,6 +307,7 @@ class WC_Gateway_FCBPay extends WC_Payment_Gateway
                 if (round($totalamount) != $reurn_amount) {
                     throw new Exception('訂單號 ' . $OrderId . ' 回傳金額不一致.');
                 } else {
+					
                     # Set the common comments
                     $comments = sprintf(
                         $this->tran('Payment Method : %s<br />Trade Time : %s<br />'),
@@ -308,7 +317,7 @@ class WC_Gateway_FCBPay extends WC_Payment_Gateway
 
                     # Set the getting code comments
                     $ToolStatus = esc_html($pay_feedback['ToolStatus']);
-                    $ToolDesc = esc_html($pay_feedback['RtnMsg']);
+                    $ToolDesc = esc_html($pay_feedback['ToolDesc']);
 					$TransStatus = esc_html($pay_feedback['TransStatus']);
                     $get_code_result_comments = sprintf(
                         '交易狀態 : (%s)%s',
@@ -343,8 +352,8 @@ class WC_Gateway_FCBPay extends WC_Payment_Gateway
 					case "CREDIT_24":
 					case "CREDIT_30":
 					case "CREDIT_REWARD":
+					case "CS":
 						break;
-					case $this->getSdkPaymentMethod('unionpay'):
 					default:
 						throw new Exception('Invalid payment method.');
 						break;
@@ -352,7 +361,7 @@ class WC_Gateway_FCBPay extends WC_Payment_Gateway
 					if($ToolStatus == "0000" && $TransStatus == "2")
 					{
 						//更新訂單狀態
-						$order->update_status('Pay', '已付款');
+						$order->update_status('completed');
 					}
                 }
             }
@@ -378,11 +387,10 @@ class WC_Gateway_FCBPay extends WC_Payment_Gateway
      * @param  string   translate target
      * @return string   translate result
      */
-    private function tran($content, $domain = 'ecpay')
+    private function tran($content, $domain = 'FCBpay')
     {
-		exit("class-wc-gateway-fcbpay.php - WC_Gateway_FCBPay - tran");
-        if ($domain == 'ecpay') {
-            return __($content, 'ecpay');
+        if ($domain == 'FCBpay') {
+            return __($content, 'FCBpay');
         } else {
             return __($content, 'woocommerce');
         }
@@ -702,7 +710,6 @@ class WC_Gateway_FCBPay extends WC_Payment_Gateway
      */
     private function ECPay_add_error($error_message)
     {
-		exit("class-wc-gateway-fcbpay.php - WC_Gateway_FCBPay - ECPay_add_error");
         wc_add_notice(esc_html($error_message), 'error');
     }
 
@@ -737,6 +744,13 @@ class WC_Gateway_FCBPay extends WC_Payment_Gateway
                 'PayType'    		=> $PayType,
                 'hashK'             => $this->hash_key,
                 'returnUrl'         => $this->ResURL,
+				'InAccountNo'       => $this->InAccountNo,
+				'checkType'         => $this->checkType,
+				'InAccountNo2'      => $this->InAccountNo2,
+				'CSInAccountNo1'    => $this->CSInAccountNo1,
+				'CSInAccountNo2'    => $this->CSInAccountNo2,
+				'CSInAccountNo3'    => $this->CSInAccountNo3,
+				'Terminal'          => $this->Terminal,
                 'orderId'           => $order->get_id(),
                 'total'             => $order->get_total(),
                 'currency'          => $order->get_currency(),

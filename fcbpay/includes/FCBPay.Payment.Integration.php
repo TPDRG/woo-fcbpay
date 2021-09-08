@@ -509,7 +509,7 @@ class FCBPaySDK {
 
     //取得付款結果通知的方法
     function CheckOutFeedback() {
-		return $arFeedback = Pay_CheckOutFeedback::CheckOut(array_merge($_POST, array('EncryptType' => $this->EncryptType)),$this->HashKey,0);
+		return $arFeedback = Pay_CheckOutFeedback::CheckOut(array_merge($_POST, array('EncryptType' => "")),$this->HashKey,0);
     }
 
     //訂單查詢作業
@@ -729,10 +729,10 @@ class Pay_Send extends Pay_Aio
 			}	
 		}
 		uksort( $paras, 'strnatcasecmp' );
-		//var_dump(urldecode($Parameters['hashK'].http_build_query($paras)));
+		var_dump(urldecode($Parameters['hashK'].http_build_query($paras)));
 		$HashKey = strtoupper(hash('sha256', urldecode($Parameters['hashK'].http_build_query($paras))));
 		$Resultparas['HashKey'] = $HashKey;
-		var_dump($Resultparas);
+		//var_dump($Resultparas);
         return $Resultparas;
     }
 }
@@ -757,12 +757,12 @@ class Pay_CheckOutFeedback extends Pay_Aio
 		foreach($arFeedback as $k=>$v) {
 			if(!is_null($arFeedback[$k]) && strlen($arFeedback[$k])>0 && $k!="HashKey")
 			{
-				$paras[$k] = $arFeedback[$k]; 
+				$paras[$k] = str_replace("\\\"","\"",$arFeedback[$k]);
 			}	
 		}
 		
 		uksort( $paras, 'strnatcasecmp' );
-		var_dump(urldecode($HashKey.http_build_query($paras)));
+		//var_dump(urldecode($HashKey.http_build_query($paras)));
 		$CheckValue = strtoupper(hash('sha256', urldecode($HashKey.http_build_query($paras))));
 
         if ($CheckValue != $arParameters['HashKey']) {

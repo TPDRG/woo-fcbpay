@@ -175,7 +175,56 @@ class FCBPayPaymentHelper extends FCBPayPaymentModuleHelper
 				$this->sdk->SendExtend['TimeoutSecs'] = '60';
 				$this->sdk->Send['PayType'] = 'CREDIT';
                 break;
-            case $this->getSdkPaymentMethod('unionpay'):
+            case $this->getSdkPaymentMethod('CS'):
+				if($this->getAmount($inputs['total']) > 60000)
+				{
+					throw new Exception("四大超商僅限6萬以下");
+				}
+				else if($this->getAmount($inputs['total']) > 40000)
+				{	if(strlen($inputs['CSInAccountNo3']) < 5)
+					{
+						throw new Exception("四大超商交易異常");
+					}
+					else if(strlen($inputs['CSInAccountNo3']) > 5)
+					{
+						$this->sdk->SendExtend['InAccountNo'] = $inputs['CSInAccountNo3'].str_pad($inputs['orderId'],9,"0",STR_PAD_LEFT); 
+					}
+					else
+					{
+						$this->sdk->SendExtend['InAccountNo'] = $inputs['CSInAccountNo3'].str_pad($inputs['orderId'],11,"0",STR_PAD_LEFT); 
+					}
+				}
+				else if($this->getAmount($inputs['total']) > 20000)
+				{	if(strlen($inputs['CSInAccountNo2']) < 5)
+					{
+						throw new Exception("四大超商交易異常");
+					}
+					else if(strlen($inputs['CSInAccountNo2']) > 5)
+					{
+						$this->sdk->SendExtend['InAccountNo'] = $inputs['CSInAccountNo2'].str_pad($inputs['orderId'],9,"0",STR_PAD_LEFT); 
+					}
+					else
+					{
+						$this->sdk->SendExtend['InAccountNo'] = $inputs['CSInAccountNo2'].str_pad($inputs['orderId'],11,"0",STR_PAD_LEFT); 
+					}
+				}
+				else
+				{	if(strlen($inputs['CSInAccountNo1']) < 5)
+					{
+						throw new Exception("四大超商交易異常");
+					}
+					else if(strlen($inputs['CSInAccountNo1']) > 5)
+					{
+						$this->sdk->SendExtend['InAccountNo'] = $inputs['CSInAccountNo1'].str_pad($inputs['orderId'],9,"0",STR_PAD_LEFT); 
+					}
+					else
+					{
+						$this->sdk->SendExtend['InAccountNo'] = $inputs['CSInAccountNo1'].str_pad($inputs['orderId'],11,"0",STR_PAD_LEFT); 
+					}
+				}
+				if($this->sdk->SendExtend['InAccountNo'] > 16)
+					$this->sdk->SendExtend['InAccountNo'] = substr($this->sdk->SendExtend['InAccountNo'], 0, 16);
+				break;
             default:
                 throw new Exception('Invalid payment method.');
                 break;

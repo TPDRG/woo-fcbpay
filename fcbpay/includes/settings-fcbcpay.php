@@ -56,8 +56,50 @@ return apply_filters( 'FCBpay_payment_settings',
             'description' => '資料回傳網址，可由電商收款通設定',
 			'default' 	=> ''
 		),
+		'InAccountNo' => array(
+			'title' 	=> '銷帳編號',
+			'type' 		=> 'text',
+            'description' => 'ATM/EATM/活期帳戶 銷帳編號',
+			'default' 	=> ''
+		),
+		'checkType' => array(
+			'title' 	=> '檢核公式',
+			'type' 		=> 'text',
+            'description' => 'ATM/EATM/活期帳戶 銷帳編號檢核公式',
+			'default' 	=> ''
+		),
+		'InAccountNo2' => array(
+			'title' 	=> '實體帳號',
+			'type' 		=> 'text',
+            'description' => 'ATM/EATM/活期帳戶 實體帳號',
+			'default' 	=> ''
+		),
+		'CSInAccountNo1' => array(
+			'title' 	=> '四大超商銷帳編號 (二萬(含)以下)',
+			'type' 		=> 'text',
+            'description' => '四大超商銷帳編號(二萬(含)以下)',
+			'default' 	=> ''
+		),
+		'CSInAccountNo2' => array(
+			'title' 	=> '四大超商銷帳編號 (二萬到四萬(含)以下)',
+			'type' 		=> 'text',
+            'description' => '銷帳編號(二萬到四萬(含)以下)',
+			'default' 	=> ''
+		),
+		'CSInAccountNo3' => array(
+			'title' 	=> '四大超商銷帳編號 (四萬到六萬(含)以下)',
+			'type' 		=> 'text',
+            'description' => '銷帳編號(四萬到六萬(含)以下)',
+			'default' 	=> ''
+		),
+		'Terminal' => array(
+			'title' 	=> '微信終端編號',
+			'type' 		=> 'text',
+            'description' => '微信終端編號',
+			'default' 	=> ''
+		),
         'payment_methods' => array(
             'type' 		=> 'pay_payment_methods',
-        ),
+        )
 	)
 );
