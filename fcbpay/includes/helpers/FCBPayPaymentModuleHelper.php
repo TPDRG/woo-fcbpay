@@ -3,11 +3,6 @@
 class FCBPayPaymentModuleHelper
 {
     /**
-     * @var string Module Helper Version
-     */
-    private $version = '1.0.190807';
-
-    /**
      * @var string SDK class name(required)
      */
     protected $sdkClassName = '';
@@ -489,4 +484,135 @@ class FCBPayPaymentModuleHelper
     {
 		return $this->serviceUrl;
     }
+	public function calInAcc($orderId,$checkType,$CAcc,$CAmount)
+	{
+		
+		$result = "";
+		$CVal = "";
+		$n = 11;
+		if(substr($CAcc, 0, 1) == "4")
+		{
+			$n = 9;
+			$CAcc = "00".$CAcc;
+		}
+		if(strlen($CAmount) < 8) {
+			  $CAmount = str_pad($CAmount,8,"0",STR_PAD_LEFT); 
+		}
+		$ValueMultiplier = "";
+		$AmountMultiplier = "";
+		$X1 = 0;
+		$X2 = 0;
+		switch (strval($checkType)) {
+            case "5":
+				$n = intval($n) - 1;
+				$oVal = $orderId;
+				if(strlen($oVal) > $n)
+					$oVal = substr($oVal, intval($n)* -1);
+				$CVal = $CAcc.str_pad($oVal,$n,"0",STR_PAD_LEFT); 
+				$ValueMultiplier = "371371371371371";
+				$AmountMultiplier = "87654321";
+				for ( $i=0 ; $i<15 ; $i++ ) {
+					$str = $CVal[$i];
+					$MultiplierStr = $ValueMultiplier[$i];
+					$A = intval($str) * intval($MultiplierStr);
+					$X1 = intval($X1) + $A%10;
+				}
+				$X1 = $X1%10;
+				for ( $i=0 ; $i<8 ; $i++ ) {
+					$str = $CAmount[$i];
+					$MultiplierStr = $AmountMultiplier[$i];
+					$A = intval($str) * intval($MultiplierStr);
+					$X2 = intval($X2) + $A%10;
+				}
+				$X2 = $X2%10;
+				$X3 = ($X1 + $X2)%10;
+				$P = (10-$X3)%10;
+				$result = $CVal.$P;
+				break;
+			case "7":
+				$n = intval($n) - 2;
+				$oVal = $orderId;
+				if(strlen($oVal) > $n)
+					$oVal = substr($oVal, intval($n)* -1);
+				$CVal = $CAcc.str_pad($oVal,$n,"0",STR_PAD_LEFT); 
+				$ValueMultiplier = "37137137137137";
+				$AmountMultiplier = "37137137";
+			
+				for ( $i=0 ; $i<14 ; $i++ ) {
+					$str = $CVal[$i];
+					$MultiplierStr = $ValueMultiplier[$i];
+					$A = intval($str) * intval($MultiplierStr);
+					$X1 = intval($X1) + $A%10;
+				}
+				$X1 = $X1%10;
+			
+				for ( $i=0 ; $i<8 ; $i++ ) {
+					$str = $CAmount[$i];
+					$MultiplierStr = $AmountMultiplier[$i];
+					$A = intval($str) * intval($MultiplierStr);
+					$X2 = intval($X2) + $A%10;
+				}
+				$X2 = $X2%10;
+				$X3 = ($X1 + $X2)%10;
+				$O = (10-$X3)%10;
+				$P = (10-$X2)%10;
+				$result = $CVal.$O.$P;
+				break;
+			case "A":
+				$n = intval($n) - 2;
+				$oVal = $orderId;
+				if(strlen($oVal) > $n)
+					$oVal = substr($oVal, intval($n)* -1);
+				$CVal = $CAcc.str_pad($oVal,$n,"0",STR_PAD_LEFT); 
+				$ValueMultiplier = "37137137137137";
+				$AmountMultiplier = "13713713";
+			
+				for ( $i=0 ; $i<14 ; $i++ ) {
+					$str = $CVal[$i];
+					$MultiplierStr = $ValueMultiplier[$i];
+					$A = intval($str) * intval($MultiplierStr);
+					$X1 = intval($X1) + $A%10;
+				}
+				for ( $i=0 ; $i<8 ; $i++ ) {
+					$str = $CAmount[$i];
+					$MultiplierStr = $AmountMultiplier[$i];
+					$A = intval($str) * intval($MultiplierStr);
+					$X2 = intval($X2) + $A%10;
+				}
+				$Y1 = ($X1 + $X2)%10;
+
+				$ValueMultiplier = "87654321876543";
+				$AmountMultiplier = "21876543";
+				$X1 = 0;
+				$X2 = 0;
+				for ( $i=0 ; $i<14 ; $i++ ) {
+					$str = $CVal[$i];
+					$MultiplierStr = $ValueMultiplier[$i];
+					$A = intval($str) * intval($MultiplierStr);
+					$X1 = intval($X1) + $A%10;
+				}
+				for ( $i=0 ; $i<8 ; $i++ ) {
+					$str = $CAmount[$i];
+					$MultiplierStr = $AmountMultiplier[$i];
+					$A = intval($str) * intval($MultiplierStr);
+					$X2 = intval($X2) + $A%10;
+				}
+				$Y2 = ($X1 + $X2)%10;
+				$O = (10-$Y1)%10;
+				$P = (10-$Y2)%10;
+				$result = $CVal.$O.$P;
+				break;
+			case "8":
+				$oVal = $orderId;
+				if(strlen($oVal) > $n)
+					$oVal = substr($oVal, intval($n)* -1);
+				$CVal = $CAcc.str_pad($oVal,$n,"0",STR_PAD_LEFT); 
+				$result = $CVal;
+				break;
+            default:
+                throw new Exception('Invalid checkType.');
+                break;
+        }
+		return $result;
+	}
 }

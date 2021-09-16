@@ -64,15 +64,23 @@ return apply_filters( 'FCBpay_payment_settings',
 		),
 		'checkType' => array(
 			'title' 	=> '檢核公式',
-			'type' 		=> 'text',
-            'description' => 'ATM/EATM/活期帳戶 銷帳編號檢核公式',
-			'default' 	=> ''
+            'label'       	=> '銷帳編號檢核公式',
+            'type'        	=> 'select',
+            'description' 	=> '8',
+            'default'     	=> '編號及應繳金額納入運算',
+            'desc_tip'    	=> true,
+            'options'     	=> array(
+                '5' =>'編號及應繳金額納入運算',
+                '7' =>'虛擬帳號+金額',
+                'A' =>'虛擬帳號+金額+繳費期限',
+				'8' =>'不檢核'
+            )
 		),
-		'InAccountNo2' => array(
-			'title' 	=> '實體帳號',
-			'type' 		=> 'text',
-            'description' => 'ATM/EATM/活期帳戶 實體帳號',
-			'default' 	=> ''
+		'Apply' => array(
+			'title' 	=> '是否啟用線上檢核',
+			'type' 		=> 'checkbox',
+			'label' 	=> '啟用',
+			'default' 	=> 'no'
 		),
 		'CSInAccountNo1' => array(
 			'title' 	=> '四大超商銷帳編號 (二萬(含)以下)',

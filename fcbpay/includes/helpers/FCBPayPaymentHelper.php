@@ -140,6 +140,7 @@ class FCBPayPaymentHelper extends FCBPayPaymentModuleHelper
         $this->sdk->Send['hashK'] = $inputs['hashK'];
         $this->sdk->ServiceURL = $this->getPayServerUrl();
 		
+		//var_dump($inputs);
         //商品明細
 		/*
         $this->sdk->Send['Items'][] = array(
@@ -152,6 +153,7 @@ class FCBPayPaymentHelper extends FCBPayPaymentModuleHelper
 		*/
         // 針對支付種類加屬性
         switch ($this->sdk->Send['PayType']) {
+			case "UNION":
             case "CREDIT":
 				$this->sdk->SendExtend['TransType'] = '1';
 				$this->sdk->SendExtend['TimeoutSecs'] = '60';
@@ -175,7 +177,7 @@ class FCBPayPaymentHelper extends FCBPayPaymentModuleHelper
 				$this->sdk->SendExtend['TimeoutSecs'] = '60';
 				$this->sdk->Send['PayType'] = 'CREDIT';
                 break;
-            case $this->getSdkPaymentMethod('CS'):
+            case 'CS':
 				if($this->getAmount($inputs['total']) > 60000)
 				{
 					throw new Exception("四大超商僅限6萬以下");
@@ -224,6 +226,28 @@ class FCBPayPaymentHelper extends FCBPayPaymentModuleHelper
 				}
 				if($this->sdk->SendExtend['InAccountNo'] > 16)
 					$this->sdk->SendExtend['InAccountNo'] = substr($this->sdk->SendExtend['InAccountNo'], 0, 16);
+				break;
+			case "WECHAT":
+				$this->sdk->SendExtend['Terminal'] = $inputs['Terminal'];
+				break;
+			case "REG":
+			case "EATM":
+				if($inputs['Apply'] == "yes")
+					$Apply = "Y";
+				else
+					$Apply = "";
+				$this->sdk->SendExtend['InAccountNo'] = $this->calInAcc($inputs['orderId'],$inputs['checkType'],$inputs['InAccountNo'],$this->getAmount($inputs['total']));
+				$this->sdk->SendExtend['Apply'] = $Apply;
+				$this->sdk->SendExtend['DueDate'] = $this->getDateTime('Ymd', '');
+				break;
+			case "IDP":
+				$this->sdk->SendExtend['InAccountNo'] = $this->calInAcc($inputs['orderId'],$inputs['checkType'],$inputs['InAccountNo'],$this->getAmount($inputs['total']));
+				$this->sdk->SendExtend['OutAccountNo'] = $inputs['OutAccountNo'];
+				$this->sdk->SendExtend['OutBank'] = $inputs['OutBank'];
+				$this->sdk->SendExtend['ID'] = $inputs['ID'];	
+				break;
+			case "JKOS":
+			case "TWPAY":
 				break;
             default:
                 throw new Exception('Invalid payment method.');
@@ -665,8 +689,8 @@ class FCBPayPaymentHelper extends FCBPayPaymentModuleHelper
 			case 'eatm':
                 $sdkPayment = "EATM";
                 break;
-			case 'atm':
-                $sdkPayment = "ATM";
+			case 'reg':
+                $sdkPayment = "REG";
                 break;
 			case 'cs':
                 $sdkPayment = "CS";

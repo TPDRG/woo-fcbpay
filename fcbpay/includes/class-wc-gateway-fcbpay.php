@@ -54,7 +54,7 @@ class WC_Gateway_FCBPay extends WC_Payment_Gateway
 		$this->ResURL        = $this->get_option('ResURL');
 		$this->InAccountNo        = $this->get_option('InAccountNo');
 		$this->checkType        = $this->get_option('checkType');
-		$this->InAccountNo2        = $this->get_option('InAccountNo2');
+		$this->Apply        = $this->get_option('Apply');
 		$this->CSInAccountNo1        = $this->get_option('CSInAccountNo1');
 		$this->CSInAccountNo2        = $this->get_option('CSInAccountNo2');
 		$this->CSInAccountNo3        = $this->get_option('CSInAccountNo3');
@@ -94,6 +94,7 @@ class WC_Gateway_FCBPay extends WC_Payment_Gateway
      */
     protected function add_checkout_actions()
     {
+		
         // 付款結果頁
         add_action('woocommerce_receipt_' . $this->id, array($this, 'receipt_page'));
 
@@ -183,6 +184,10 @@ class WC_Gateway_FCBPay extends WC_Payment_Gateway
 						{
 							subdiv.innerHTML = "紅利折抵活動代碼<input type=\'text\' name=\'BonusActionCode\' ></input>";
 						}
+						else if(v == "IDP")
+						{
+							subdiv.innerHTML = "支出帳號<input type=\'text\' name=\'OutAccountNo\' ></input></br>轉出行代號<input type=\'text\' name=\'OutBank\' ></input></br>身分證字號<input type=\'text\' name=\'ID\' ></input>";
+						}
 						else
 						{
 							subdiv.innerHTML = "";
@@ -251,6 +256,16 @@ class WC_Gateway_FCBPay extends WC_Payment_Gateway
 			else{
 				$this->BonusActionCode = '';
 			}
+			if (isset($_POST["OutAccountNo"])){
+				$this->OutAccountNo = sanitize_text_field($_POST['OutAccountNo']);
+				$this->OutBank = sanitize_text_field($_POST['OutBank']);
+				$this->ID = sanitize_text_field($_POST['ID']);
+			}
+			else{
+				$this->OutAccountNo = '';
+				$this->OutBank = '';
+				$this->ID = '';
+			}
             return true;
         } else {
             $this->ECPay_add_error('錯誤支付'. $payment_desc);
@@ -269,8 +284,10 @@ class WC_Gateway_FCBPay extends WC_Payment_Gateway
 
         # Set the ECPay payment type to the order note
         $order->add_order_note($this->FCBpay_choose_payment, FCBPay_OrderNoteEmail::PAYMENT_METHOD);
-		//$order->add_meta_data('BonusActionCode',$this->BonusActionCode);
 		add_post_meta($order_id, '_BonusActionCode', sanitize_text_field($this->BonusActionCode), true);
+		add_post_meta($order_id, '_OutAccountNo', sanitize_text_field($this->OutAccountNo), true);
+		add_post_meta($order_id, '_OutBank', sanitize_text_field($this->OutBank), true);
+		add_post_meta($order_id, '_ID', sanitize_text_field($this->ID), true);
         return array(
             'result' => 'success',
             'redirect' => $order->get_checkout_payment_url(true)
@@ -353,6 +370,13 @@ class WC_Gateway_FCBPay extends WC_Payment_Gateway
 					case "CREDIT_30":
 					case "CREDIT_REWARD":
 					case "CS":
+					case "WECHAT":
+					case "EATM":
+					case "IDP":
+					case "REG":
+					case "UNION":
+					case "TWPAY":
+					case "JKOS":
 						break;
 					default:
 						throw new Exception('Invalid payment method.');
@@ -746,7 +770,7 @@ class WC_Gateway_FCBPay extends WC_Payment_Gateway
                 'returnUrl'         => $this->ResURL,
 				'InAccountNo'       => $this->InAccountNo,
 				'checkType'         => $this->checkType,
-				'InAccountNo2'      => $this->InAccountNo2,
+				'Apply'      => $this->Apply,
 				'CSInAccountNo1'    => $this->CSInAccountNo1,
 				'CSInAccountNo2'    => $this->CSInAccountNo2,
 				'CSInAccountNo3'    => $this->CSInAccountNo3,
@@ -754,9 +778,11 @@ class WC_Gateway_FCBPay extends WC_Payment_Gateway
                 'orderId'           => $order->get_id(),
                 'total'             => $order->get_total(),
                 'currency'          => $order->get_currency(),
-				'BonusActionCode'	=> get_post_meta($order_id, '_BonusActionCode', true)
+				'BonusActionCode'	=> get_post_meta($order_id, '_BonusActionCode', true),
+				'OutAccountNo'		=> get_post_meta($order_id, '_OutAccountNo', true),
+				'OutBank'			=> get_post_meta($order_id, '_OutBank', true),
+				'ID'				=> get_post_meta($order_id, '_ID', true)
             );
-
             $this->helper->checkout($data);
             exit;
         } catch(Exception $e) {
