@@ -49,17 +49,17 @@ class WC_Gateway_FCBPay extends WC_Payment_Gateway
         $this->title                 = $this->get_option('title');
         $this->description           = $this->get_option('description');
         $this->pay_server            = $this->get_option('payServer');
-        $this->merchant_id     = $this->get_option('merchant_id');
-        $this->hash_key        = $this->get_option('hash_key');
-		$this->ResURL        = $this->get_option('ResURL');
-		$this->InAccountNo        = $this->get_option('InAccountNo');
-		$this->checkType        = $this->get_option('checkType');
-		$this->Apply        = $this->get_option('Apply');
+        $this->merchant_id     		 = $this->get_option('merchant_id');
+        $this->hash_key        		 = $this->get_option('hash_key');
+		$this->ResURL        		 = $this->get_option('ResURL');
+		$this->InAccountNo        	 = $this->get_option('InAccountNo');
+		$this->checkType       		 = $this->get_option('checkType');
+		$this->Apply       			 = $this->get_option('Apply');
 		$this->CSInAccountNo1        = $this->get_option('CSInAccountNo1');
 		$this->CSInAccountNo2        = $this->get_option('CSInAccountNo2');
 		$this->CSInAccountNo3        = $this->get_option('CSInAccountNo3');
-		$this->Terminal        = $this->get_option('Terminal');
-		
+		$this->Terminal        		 = $this->get_option('Terminal');
+		$this->InvoiceFlag			 = $this->get_option('InvoiceFlag');
 		
         # Load the helper
         $this->helper = FCBPay_PaymentCommon::getHelper();
@@ -103,9 +103,6 @@ class WC_Gateway_FCBPay extends WC_Payment_Gateway
 
         // 付款回應處理
         add_action('woocommerce_api_wc_gateway_' . $this->id, array($this, 'receive_response'));
-
-        // "返回商店"感謝頁
-        add_action('woocommerce_thankyou_ecpay', array($this, 'thankyou_page'));
     }
 
     /**
@@ -452,99 +449,6 @@ class WC_Gateway_FCBPay extends WC_Payment_Gateway
     }
 
     /**
-     * Check if the order status is complete
-     * @param  object   order
-     * @return boolean  is the order complete
-     */
-    private function is_order_complete($order)
-    {
-		exit("class-wc-gateway-fcbpay.php - WC_Gateway_FCBPay - is_order_complete");
-        $status = '';
-        $status = (method_exists($order,'get_status') == true ) ? $order->get_status() : $order->status;
-
-        if ($status == 'pending') {
-            return false;
-        } else {
-            return true;
-        }
-    }
-
-    /**
-     * Get the order comments
-     * @param  array    ECPay feedback
-     * @return string   order comments
-     */
-    public function get_order_comments($ecpay_feedback)
-    {
-		exit("class-wc-gateway-fcbpay.php - WC_Gateway_FCBPay - get_order_comments");
-        $comments = array(
-            'ATM' =>
-                sprintf(
-                    '銀行代碼 : %s<br />虛擬帳號 : %s<br />付款截止日 : %s<br />',
-                    esc_html($ecpay_feedback['BankCode']),
-                    esc_html($ecpay_feedback['vAccount']),
-                    esc_html($ecpay_feedback['ExpireDate'])
-                ),
-            'CS' =>
-                sprintf(
-                    '繳費代碼 : %s<br />付款截止日 : %s<br ',
-                    esc_html($ecpay_feedback['PaymentNo']),
-                    esc_html($ecpay_feedback['ExpireDate'])
-                ),
-            'BARCODE' =>
-                sprintf(
-                    '付款截止日 : %s<br />第1段條碼號碼 : %s<br />第2段條碼號碼 : %s<br />第3段條碼號碼 : %s<br />',
-                    esc_html($ecpay_feedback['ExpireDate']),
-                    esc_html($ecpay_feedback['Barcode1']),
-                    esc_html($ecpay_feedback['Barcode2']),
-                    esc_html($ecpay_feedback['Barcode3'])
-                )
-        );
-        $payment_method = $this->helper->getPaymentMethod($ecpay_feedback['PaymentType']);
-
-        return $comments[$payment_method];
-    }
-
-    /**
-     * Complete the order and add the comments
-     * @param  object   order
-     */
-    public function confirm_order($order, $comments, $ecpay_feedback)
-    {
-		exit("class-wc-gateway-fcbpay.php - WC_Gateway_FCBPay - confirm_order");
-        // 判斷是否為模擬付款
-        if ($ecpay_feedback['SimulatePaid'] == 0) {
-            $order->add_order_note($comments, FCBPay_OrderNoteEmail::CONFIRM_ORDER);
-
-            $order->payment_complete();
-
-            // 加入信用卡後四碼，提供電子發票開立使用 v1.1.0911
-            if(isset($ecpay_feedback['card4no']) && !empty($ecpay_feedback['card4no']))
-            {
-                add_post_meta( $order->get_id(), 'card4no', sanitize_text_field($ecpay_feedback['card4no']), true);
-            }
-
-            // 自動開立發票
-            $this->auto_invoice($order->get_id(), $ecpay_feedback);
-        } elseif ($ecpay_feedback['SimulatePaid'] == 1) {
-            // 模擬付款，僅更新備註
-            $order->add_order_note($this->tran($this->helper->msg['simulatePaid']));
-        }
-    }
-
-    /**
-     * Output for the order received page.
-     *
-     * @param int $order_id
-     */
-    public function thankyou_page( $order_id )
-    {
-		exit("class-wc-gateway-fcbpay.php - WC_Gateway_FCBPay - thankyou_page");
-        $this->payment_details( $order_id );
-
-    }
-
-    /**
      * Get payment details and place into a list format.
      *
      * @param int $order_id
@@ -615,120 +519,6 @@ class WC_Gateway_FCBPay extends WC_Payment_Gateway
     }
 
     /**
-     * 無效訂單狀態更新
-     *
-     * @return void
-     */
-    public function action_woocommerce_admin_order_status_cancel()
-    {
-		exit("class-wc-gateway-fcbpay.php - WC_Gateway_FCBPay - action_woocommerce_admin_order_status_cancel");
-        try {
-            global $post;
-
-            // 訂單編號
-            $order_id = $post->ID;
-
-            // 是否反查過訂單
-            $is_expire = get_post_meta($order_id, '_ecpay_payment_is_expire', true);
-
-            if ($is_expire === $this->helper->isExpire['no']) {
-
-                // 取得傳入資料
-                $order                      = wc_get_order($order_id);
-                $order_status               = $order->get_status();                                                // 訂單狀態
-                $payment_method             = $order->get_payment_method();                                        // 付款方式
-                $date_created               = $order->get_date_created()->getTimestamp();                          // 訂單建立時間
-                $ecpay_payment_method       = get_post_meta($order_id, '_FCBpay_payment_method', true);             // 綠界付款方式
-                $stage_payment_order_prefix = get_post_meta($order_id, '_ecpay_payment_stage_order_prefix', true); // 測試訂單編號前綴
-                $hold_stock_minutes         = empty(get_option('woocommerce_hold_stock_minutes')) ? 0 : get_option('woocommerce_hold_stock_minutes'); // 取得保留庫存時間
-
-                // 組合傳入資料
-                $data = array(
-                    'hashKey'            => $this->hash_key,
-                    'hashIv'             => $this->ecpay_hash_iv,
-                    'orderId'            => $order_id,
-                    'holdStockMinute'    => $hold_stock_minutes,
-                    'orderStatus'        => $order_status,
-                    'paymentMethod'      => $payment_method,
-                    'ecpayPaymentMethod' => $ecpay_payment_method,
-                    'createDate'         => $date_created,
-                    'stageOrderPrefix'   => $stage_payment_order_prefix,
-                );
-                $feedback = $this->helper->expiredOrder($data);
-
-                // 交易失敗
-                if (isset($feedback['TradeStatus']) && $feedback['TradeStatus'] == $this->helper->tradeStatusCodes['emptyPaymentMethod']) {
-                    // 更新訂單狀態/備註
-                    //$order->add_order_note($this->tran( $this->helper->msg['unpaidOrder'], 'woocommerce' ), ECPay_OrderNoteEmail::CANCEL_ORDER);
-
-                    $order->update_status('cancelled');
-                    update_post_meta($order_id, '_ecpay_payment_is_expire', $this->helper->isExpire['yes'] );
-
-                    // 提示
-                    $args = [
-                        'msg' => '訂單已經改變,請刷新你的瀏覽器'
-                    ];
-                    wc_get_template('admin/FCBPay-admin-order-expire.php', $args, '', TPAY_PAYMENT_PLUGIN_PATH . 'templates/');
-                }
-            }
-        } catch(Exception $e) {
-            echo $e->getMessage();
-        }
-    }
-
-    /**
-     * 記錄目前成功付款次數
-     *
-     * @param  integer $order_id            訂單編號
-     * @param  array   $total_success_times 付款次數
-     * @return void
-     */
-    private function note_success_times($order_id, $total_success_times)
-    {
-		exit("class-wc-gateway-fcbpay.php - WC_Gateway_FCBPay - note_success_times");
-        $nTotalSuccessTimes = ( isset($total_success_times) && ( empty($total_success_times) || $total_success_times == 1 ))  ? '' :  $total_success_times;
-        update_post_meta($order_id, '_total_success_times', $nTotalSuccessTimes );
-    }
-
-    /**
-     * 自動開立發票
-     *
-     * @param  integer $order_id
-     * @return void
-     */
-    private function auto_invoice($order_id, $ecpay_feedback)
-    {
-		exit("class-wc-gateway-fcbpay.php - WC_Gateway_FCBPay - auto_invoice");
-        // call invoice model
-        $invoice_active_ecpay   = 0 ;
-
-        // 取得目前啟用的外掛
-        $active_plugins = (array) get_option( 'active_plugins', array() );
-
-        // 加入其他站點啟用的外掛
-        $active_plugins = array_merge( $active_plugins, get_site_option( 'active_sitewide_plugins', array() ) );
-
-        // 判斷ECPay發票模組是否有啟用
-        foreach ($active_plugins as $key => $value) {
-            if ((strpos($value, '/woocommerce-ecpayinvoice.php') !== false)) {
-                $invoice_active_ecpay = 1;
-            }
-        }
-
-        // 自動開立發票
-        if ($invoice_active_ecpay == 1) {
-            $aConfig_Invoice = get_option('wc_ecpayinvoice_active_model') ;
-
-            // 記錄目前成功付款到第幾次
-            $this->note_success_times($order_id, $ecpay_feedback['TotalSuccessTimes']);
-
-            if (isset($aConfig_Invoice) && $aConfig_Invoice['wc_ecpay_invoice_enabled'] == 'enable' && $aConfig_Invoice['wc_ecpay_invoice_auto'] == 'auto' ) {
-                do_action('ecpay_auto_invoice', $order_id, $ecpay_feedback['SimulatePaid']);
-            }
-        }
-    }
-
-    /**
      * Add a WooCommerce error message
      * @param string $error_message
      */
@@ -781,7 +571,8 @@ class WC_Gateway_FCBPay extends WC_Payment_Gateway
 				'BonusActionCode'	=> get_post_meta($order_id, '_BonusActionCode', true),
 				'OutAccountNo'		=> get_post_meta($order_id, '_OutAccountNo', true),
 				'OutBank'			=> get_post_meta($order_id, '_OutBank', true),
-				'ID'				=> get_post_meta($order_id, '_ID', true)
+				'ID'				=> get_post_meta($order_id, '_ID', true),
+				'InvoiceFlag'		=> $this->InvoiceFlag
             );
             $this->helper->checkout($data);
             exit;

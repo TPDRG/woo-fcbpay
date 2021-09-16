@@ -12,7 +12,12 @@ return apply_filters( 'FCBpay_payment_settings',
 			'default' 	=> 'no'
 		),
 
-
+		'InvoiceFlag' => array(
+			'title' 	=> '是否啟用電子發票',
+			'type' 		=> 'checkbox',
+			'label' 	=> '啟用',
+			'default' 	=> 'no'
+		),
         'payServer' => array(
             'title' 	=> '執行環境',
             'label'       	=> '執行環境',

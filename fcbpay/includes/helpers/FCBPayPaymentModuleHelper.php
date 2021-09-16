@@ -181,62 +181,6 @@ class FCBPayPaymentModuleHelper
             return $this->set('logFileName', $fileName);
         }
     }
-
-    /**
-     * Get the log file name
-     * @return string
-     */
-    public function getLogFileName()
-    {
-		exit("FCBPayPaymentModuleHelper.php - FCBPayPaymentModuleHelper - getLogFileName");
-        return $this->logFileName;
-    }
-
-    /**
-     * Get the full log path
-     * @return string
-     */
-    public function getFullLogPath()
-    {
-		exit("FCBPayPaymentModuleHelper.php - FCBPayPaymentModuleHelper - getFullLogPath");
-        $format = '%s/%s';
-        return sprintf($format, $this->getLogDir(), $this->getLogFileName());
-    }
-
-    /**
-     * Get the log content
-     * @param string $content Log content
-     * @return string
-     */
-    public function getLogContent($content = '')
-    {
-		exit("FCBPayPaymentModuleHelper.php - FCBPayPaymentModuleHelper - getLogContent");
-        $format = '%s %s';
-        $parseList = array('array', 'object');
-        $logDate = $this->getDateTime('Y-m-d H:i:s', '');
-        $dataType = gettype($content);
-        if (in_array($dataType, $parseList) === true) {
-            $logContent = print_r($content, true);
-        } else {
-            $logContent = $content;
-        }
-        return sprintf($format, $logDate, $logContent) . PHP_EOL;
-    }
-
-    /**
-     * Save debug log
-     * @param  string $content Log content
-     * @return integer
-     */
-    public function saveDebugLog($content = '')
-    {
-		exit("FCBPayPaymentModuleHelper.php - FCBPayPaymentModuleHelper - saveDebugLog");
-        // Save log
-        $logPath = $this->getFullLogPath();
-        $logContent = $this->getLogContent($content);
-        return file_put_contents($logPath, $logContent, FILE_APPEND);
-    }
-
     /**
      * Filter the inputs
      * @param array $source Source data
@@ -261,107 +205,6 @@ class FCBPayPaymentModuleHelper
         }
         return $variables;
     }
-
-    /**
-     * Check if has empty data
-     * @param array $data
-     * @return bool
-     */
-    public function hasEmpty($data = array())
-    {
-		exit("FCBPayPaymentModuleHelper.php - FCBPayPaymentModuleHelper - hasEmpty");
-        foreach ($data as $value) {
-            if (empty($value) === true) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    /**
-     * Echo the parameters in json format and exit
-     * @param array $parameters Parameters
-     */
-    public function echoJson($parameters = array())
-    {
-		exit("FCBPayPaymentModuleHelper.php - FCBPayPaymentModuleHelper - echoJson");
-        $json = json_encode($parameters);
-        $this->echoAndExit($json);
-    }
-
-    /**
-     * Echo and exit
-     * @param string $message
-     */
-    public function echoAndExit($message = '')
-    {
-		exit("FCBPayPaymentModuleHelper.php - FCBPayPaymentModuleHelper - echoAndExit");
-        echo $message;
-        exit;
-    }
-
-    /**
-     * Set merchant order number prefix
-     * @param string $prefix
-     * @return bool
-     */
-    public function setMerchantOrderPrefix($prefix = '')
-    {
-		exit("FCBPayPaymentModuleHelper.php - FCBPayPaymentModuleHelper - setMerchantOrderPrefix");
-        return $this->set('merchantOrderPrefix', $prefix);
-    }
-
-    /**
-     * Get merchant order number prefix
-     * @return string
-     */
-    public function getMerchantOrderPrefix()
-    {
-		exit("FCBPayPaymentModuleHelper.php - FCBPayPaymentModuleHelper - getMerchantOrderPrefix");
-        return $this->merchantOrderPrefix;
-    }
-
-    /**
-     * Set merchant trade number
-     * @param  integer $orderId Order id
-     * @return string
-     */
-    public function setMerchantTradeNo($orderId = 0)
-    {
-		exit("FCBPayPaymentModuleHelper.php - FCBPayPaymentModuleHelper - setMerchantTradeNo");
-        $merchantId = $this->getMerchantId();
-        return strval($orderId);
-    }
-
-    /**
-     * Get merchant trade number
-     * @param  integer $orderId Order id
-     * @return string
-     */
-    public function getMerchantTradeNo($merchantTradeNo = 0)
-    {
-		exit("FCBPayPaymentModuleHelper.php - FCBPayPaymentModuleHelper - getMerchantTradeNo");
-        // Filter inputs
-        if (empty($merchantTradeNo) === true) {
-            return false;
-        }
-        unset($inputs);
-
-        $merchantId = $this->getMerchantId();
-        $orderId = $merchantTradeNo;
-        return $orderId;
-    }
-
-    /**
-     * Get the length of merchant order number prefix
-     * @return int
-     */
-    public function getMerchantOrderPrefixLength()
-    {
-		exit("FCBPayPaymentModuleHelper.php - FCBPayPaymentModuleHelper - getMerchantOrderPrefixLength");
-        return strlen($this->getMerchantOrderPrefix());
-    }
-
     /**
      * Set timezone
      * @param  string $timezone
@@ -379,17 +222,6 @@ class FCBPayPaymentModuleHelper
     public function getTimezone()
     {
         return $this->timezone;
-    }
-
-    /**
-     * Get the unixtime
-     * @param  string $dateString Date string
-     * @return integer
-     */
-    public function getUnixTime($dateString = '')
-    {
-		exit("FCBPayPaymentModuleHelper.php - FCBPayPaymentModuleHelper - getUnixTime");
-        return strtotime($dateString);
     }
 
     /**
@@ -433,49 +265,7 @@ class FCBPayPaymentModuleHelper
     public function validAmount($source = 0, $target = 0)
     {
 		return ($this->getAmount($source) === $this->getAmount($target));
-    }
-
-    /**
-     * responseSuccess function
-     * 接收API回應-成功
-     *
-     * @return string
-     */
-    public function responseSuccess()
-    {
-		exit("FCBPayPaymentModuleHelper.php - FCBPayPaymentModuleHelper - responseSuccess");
-        exit('1|OK');
-    }
-
-    /**
-     * responseError function
-     * 接收API回應-失敗
-     *
-     * @return string
-     */
-    public function responseError($msg)
-    {
-		exit("FCBPayPaymentModuleHelper.php - FCBPayPaymentModuleHelper - responseError");
-        exit('0|' . $msg);
-    }
-
-    /**
-     * isHttps function
-     * 判斷URL是否為 https
-     *
-     * @param  string $site 判斷的URL
-     * @return bool
-     */
-    public function isHttps($site)
-    {
-		exit("FCBPayPaymentModuleHelper.php - FCBPayPaymentModuleHelper - isHttps");
-        if (strpos($site,"https://") !== false) {
-            return true;
-        } else {
-            return false;
-        }
-    }
-	
+    }	
 	public function setPayServerUrl($Url = '')
     {
         return $this->set('serviceUrl', $Url);
