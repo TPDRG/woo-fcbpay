@@ -240,7 +240,7 @@ class Pay_Send extends Pay_Aio
 			}	
 		}
 		uksort( $paras, 'strnatcasecmp' );
-		var_dump(urldecode($Parameters['hashK'].http_build_query($paras)));
+		//var_dump(urldecode($Parameters['hashK'].http_build_query($paras)));
 		$HashKey = strtoupper(hash('sha256', urldecode($Parameters['hashK'].http_build_query($paras))));
 		$Resultparas['HashKey'] = $HashKey;
 		if($Resultparas['PayType'] == "REG")

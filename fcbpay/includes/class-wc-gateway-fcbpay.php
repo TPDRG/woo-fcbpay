@@ -60,6 +60,7 @@ class WC_Gateway_FCBPay extends WC_Payment_Gateway
 		$this->CSInAccountNo3        = $this->get_option('CSInAccountNo3');
 		$this->Terminal        		 = $this->get_option('Terminal');
 		$this->InvoiceFlag			 = $this->get_option('InvoiceFlag');
+		$this->Amount_TaxRate		 = $this->get_option('Amount_TaxRate');
 		
         # Load the helper
         $this->helper = FCBPay_PaymentCommon::getHelper();
@@ -139,7 +140,8 @@ class WC_Gateway_FCBPay extends WC_Payment_Gateway
                 'payment_options' => $this->payment_options,
                 'FCBpay_payment_methods' => $this->payment_methods
             );
-
+			if($this->InvoiceFlag == 'yes')
+				echo $this->show_InvoiceText();
             echo $this->show_select_payment_methods($data);
         } else {
             echo '請重新下單：不支援重新付款';
@@ -157,7 +159,6 @@ class WC_Gateway_FCBPay extends WC_Payment_Gateway
 		// 宣告參數
         $payment_options = $data['payment_options'];
         $FCBpay_payment_methods = $data['FCBpay_payment_methods'];
-
         // Html
         $szHtml  = '';
 
@@ -179,11 +180,11 @@ class WC_Gateway_FCBPay extends WC_Payment_Gateway
 						var subdiv = document.getElementById("subdiv");
 						if(v == "CREDIT_REWARD")
 						{
-							subdiv.innerHTML = "紅利折抵活動代碼<input type=\'text\' name=\'BonusActionCode\' ></input>";
+							subdiv.innerHTML = "紅利折抵活動代碼 : <input type=\'text\' name=\'BonusActionCode\' ></input>";
 						}
 						else if(v == "IDP")
 						{
-							subdiv.innerHTML = "支出帳號<input type=\'text\' name=\'OutAccountNo\' ></input></br>轉出行代號<input type=\'text\' name=\'OutBank\' ></input></br>身分證字號<input type=\'text\' name=\'ID\' ></input>";
+							subdiv.innerHTML = "支出帳號 : <input type=\'text\' name=\'OutAccountNo\' ></input></br>轉出行代號 : <input type=\'text\' name=\'OutBank\' ></input></br>身分證字號 : <input type=\'text\' name=\'ID\' ></input>";
 						}
 						else
 						{
@@ -195,7 +196,44 @@ class WC_Gateway_FCBPay extends WC_Payment_Gateway
         return $szHtml;
     }
 
-
+	public function show_InvoiceText()
+    {
+        // Html
+        $szHtml  = '';
+		$szHtml .= '捐贈發票' . ' : ';
+		$szHtml .= '<select id="DonateMark" name="DonateMark" onchange="DonateMarkchange(this)">';
+        $szHtml .= '<option value="0" selected>不捐贈</option>';
+		$szHtml .= '<option value="1">捐贈</option>';
+        $szHtml .= '</select>';
+		
+		$szHtml .= '<div id="Invoicediv">';
+		$szHtml .= '發票統編 : <input type=\'text\' name=\'Buyer_Identifier\' ></input><br />';
+		$szHtml .= '接收發票電子信箱 : <input type=\'text\' name=\'CUSTOMEREMAIL\' ></input><br />';
+		$szHtml .= '載具號碼 : <input type=\'text\' name=\'CarrierId1\' ></input><br />';
+		$szHtml .= '</div>';
+		
+		$szHtml .= '<script>
+					function DonateMarkchange(item)
+					{
+						var v = item.options[item.selectedIndex].value
+						var Invoicediv = document.getElementById("Invoicediv");
+						if(v == "0")
+						{
+							Invoicediv.innerHTML = "發票統編 : <input type=\'text\' name=\'Buyer_Identifier\' ></input><br />接收發票電子信箱 : <input type=\'text\' name=\'CUSTOMEREMAIL\' ></input><br />載具號碼 : <input type=\'text\' name=\'CarrierId1\' ></input><br />";
+						}
+						else if(v == "1")
+						{
+							Invoicediv.innerHTML = "愛心碼 : <input type=\'text\' name=\'NPOBAN\' ></input><br />接收發票電子信箱 : <input type=\'text\' name=\'CUSTOMEREMAIL\' ></input><br />載具號碼 : <input type=\'text\' name=\'CarrierId1\' ></input><br />";
+						}
+						else
+						{
+							Invoicediv.innerHTML = "";
+						}
+					}
+					</script>';
+		
+        return $szHtml;
+    }
     /**
      * 後台-付款方式區塊
      */
@@ -263,6 +301,28 @@ class WC_Gateway_FCBPay extends WC_Payment_Gateway
 				$this->OutBank = '';
 				$this->ID = '';
 			}
+			if($this-> InvoiceFlag == "yes")
+			{
+				$this->DonateMark = sanitize_text_field($_POST['DonateMark']);
+				$this->CUSTOMEREMAIL = sanitize_text_field($_POST['CUSTOMEREMAIL']);
+				$this->CarrierId1 = sanitize_text_field($_POST['CarrierId1']);
+				if($_POST["DonateMark"] == "0")
+				{
+					$this->Buyer_Identifier = sanitize_text_field($_POST['Buyer_Identifier']);
+					$this->NPOBAN = '';
+				}
+				else if($_POST["DonateMark"] == "1"){
+					$this->NPOBAN = sanitize_text_field($_POST['NPOBAN']);
+					$this->Buyer_Identifier = '';
+				}
+			}
+			else{
+				$this->DonateMark = '';
+				$this->CUSTOMEREMAIL = '';
+				$this->CarrierId1 = '';
+				$this->Buyer_Identifier = '';
+				$this->NPOBAN = '';
+			}
             return true;
         } else {
             $this->ECPay_add_error('錯誤支付'. $payment_desc);
@@ -285,6 +345,11 @@ class WC_Gateway_FCBPay extends WC_Payment_Gateway
 		add_post_meta($order_id, '_OutAccountNo', sanitize_text_field($this->OutAccountNo), true);
 		add_post_meta($order_id, '_OutBank', sanitize_text_field($this->OutBank), true);
 		add_post_meta($order_id, '_ID', sanitize_text_field($this->ID), true);
+		add_post_meta($order_id, '_DonateMark', sanitize_text_field($this->DonateMark), true);
+		add_post_meta($order_id, '_CUSTOMEREMAIL', sanitize_text_field($this->CUSTOMEREMAIL), true);
+		add_post_meta($order_id, '_CarrierId1', sanitize_text_field($this->CarrierId1), true);
+		add_post_meta($order_id, '_Buyer_Identifier', sanitize_text_field($this->Buyer_Identifier), true);
+		add_post_meta($order_id, '_NPOBAN', sanitize_text_field($this->NPOBAN), true);
         return array(
             'result' => 'success',
             'redirect' => $order->get_checkout_payment_url(true)
@@ -572,7 +637,13 @@ class WC_Gateway_FCBPay extends WC_Payment_Gateway
 				'OutAccountNo'		=> get_post_meta($order_id, '_OutAccountNo', true),
 				'OutBank'			=> get_post_meta($order_id, '_OutBank', true),
 				'ID'				=> get_post_meta($order_id, '_ID', true),
-				'InvoiceFlag'		=> $this->InvoiceFlag
+				'DonateMark'		=> get_post_meta($order_id, '_DonateMark', true),
+				'CUSTOMEREMAIL'		=> get_post_meta($order_id, '_CUSTOMEREMAIL', true),
+				'CarrierId1'		=> get_post_meta($order_id, '_CarrierId1', true),
+				'Buyer_Identifier'	=> get_post_meta($order_id, '_Buyer_Identifier', true),
+				'NPOBAN'			=> get_post_meta($order_id, '_NPOBAN', true),
+				'InvoiceFlag'		=> $this->InvoiceFlag,
+				'Amount_TaxRate'	=> $this->Amount_TaxRate
             );
             $this->helper->checkout($data);
             exit;

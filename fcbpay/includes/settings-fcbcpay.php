@@ -18,6 +18,13 @@ return apply_filters( 'FCBpay_payment_settings',
 			'label' 	=> '啟用',
 			'default' 	=> 'no'
 		),
+		'Amount_TaxRate' => array(
+			'title' 	=> '電子發票稅率',
+			'type' 		=> 'text',
+			'description' => '5%時本欄位為 0.05',
+			'default' 	=> '0.05',
+			'desc_tip'    => true
+		),
         'payServer' => array(
             'title' 	=> '執行環境',
             'label'       	=> '執行環境',

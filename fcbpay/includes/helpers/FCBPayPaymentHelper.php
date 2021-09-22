@@ -100,18 +100,38 @@ class FCBPayPaymentHelper extends FCBPayPaymentModuleHelper
 		$this->sdk->Send['ResURL'] = $inputs['returnUrl'];
         $this->sdk->Send['hashK'] = $inputs['hashK'];
         $this->sdk->ServiceURL = $this->getPayServerUrl();
+		if($inputs['InvoiceFlag'] == "yes")
+		{
+			$this->sdk->Send['Amount_TaxRate'] = $inputs['Amount_TaxRate'];
+			$this->sdk->Send['DonateMark'] = $inputs['DonateMark'];
+			$this->sdk->Send['CUSTOMEREMAIL'] = $inputs['CUSTOMEREMAIL'];
+			$this->sdk->Send['CarrierId1'] = $inputs['CarrierId1'];
+			if($inputs['DonateMark'] == "0")
+			{
+				if(strlen($inputs['Buyer_Identifier']) > 0)
+					$this->sdk->Send['Buyer_Identifier'] = $inputs['Buyer_Identifier'];
+				else
+					$this->sdk->Send['Buyer_Identifier'] = "00000000";
+			}
+			else if($inputs['DonateMark'] == "1")
+			{
+				$this->sdk->Send['NPOBAN'] = $inputs['NPOBAN'];
+			}
+			//商品明細
 		
+			$Item = array(
+				'Description' => "WOItem",
+				'UnitPrice' => $this->sdk->Send['Amount'],
+				'Amount'  => $this->sdk->Send['Amount'],
+				'Quantity' => 1,
+				'TaxType' => '1',
+			);
+			$this->sdk->SendExtend['ProductDetail'] = json_encode($Item);	
+		}
 		//var_dump($inputs);
-        //商品明細
-		/*
-        $this->sdk->Send['Items'][] = array(
-            'Name' => $inputs['itemName'],
-            'Price' => $this->sdk->Send['Amount'],
-            'Currency'  => $inputs['currency'],
-            'Quantity' => 1,
-            'URL' => '',
-        );
-		*/
+		//echo("</br>");
+        
+		
         // 針對支付種類加屬性
         switch ($this->sdk->Send['PayType']) {
 			case "UNION":
