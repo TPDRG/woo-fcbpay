@@ -93,7 +93,8 @@ class FCBPayPaymentHelper extends FCBPayPaymentModuleHelper
         // Set SDK parameters
 		$this->sdk->Send['PlatFormId'] = $this->getMerchantId();
 		$this->sdk->Send['PayType'] = $this->getPaymentMethod($inputs['PayType']);
-		$this->sdk->Send['OrderId'] = $inputs['orderId'];
+		$SendOrderId = $inputs['orderId']."A".$this->getDateTime('is', '');
+		$this->sdk->Send['OrderId'] = $SendOrderId;
 		$this->sdk->Send['Amount'] = $this->getAmount($inputs['total']);
 		$this->sdk->Send['CreateTime'] = $this->getDateTime('Y/m/d H:i:s', '');
 		$this->sdk->Send['TransTime'] = $this->getDateTime('Y/m/d H:i:s', '');

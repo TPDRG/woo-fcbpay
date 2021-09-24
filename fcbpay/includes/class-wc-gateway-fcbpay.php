@@ -375,8 +375,8 @@ class WC_Gateway_FCBPay extends WC_Payment_Gateway
                 throw new Exception('Get ECPay feedback failed.');
             } else {
                 # Get the cart order id
-                $OrderId = $pay_feedback['OrderId'];
-
+                $ROrderId = $pay_feedback['OrderId'];
+				$OrderId = substr($ROrderId,0,strpos($ROrderId,"A"));
                 # Get the cart order amount
                 $order = new WC_Order($OrderId);
                 $totalamount = $order->get_total();
