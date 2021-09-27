@@ -127,7 +127,7 @@ class FCBPayPaymentHelper extends FCBPayPaymentModuleHelper
 				'Quantity' => 1,
 				'TaxType' => '1',
 			);
-			$this->sdk->SendExtend['ProductDetail'] = json_encode($Item);	
+			$this->sdk->SendExtend['ProductDetail'] =  "[".json_encode($Item)."]";	
 		}
 		//var_dump($inputs);
 		//echo("</br>");
