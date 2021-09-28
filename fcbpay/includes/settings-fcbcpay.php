@@ -71,7 +71,7 @@ return apply_filters( 'FCBpay_payment_settings',
 		'InAccountNo' => array(
 			'title' 	=> '銷帳編號',
 			'type' 		=> 'text',
-            'description' => 'ATM/EATM/活期帳戶 銷帳編號',
+            'description' => 'ATM/EATM/活期帳戶 銷帳編號 5碼或7碼',
 			'default' 	=> ''
 		),
 		'checkType' => array(
@@ -97,19 +97,19 @@ return apply_filters( 'FCBpay_payment_settings',
 		'CSInAccountNo1' => array(
 			'title' 	=> '四大超商銷帳編號 (二萬(含)以下)',
 			'type' 		=> 'text',
-            'description' => '四大超商銷帳編號(二萬(含)以下)',
+            'description' => '四大超商銷帳編號(二萬(含)以下)  5碼或7碼',
 			'default' 	=> ''
 		),
 		'CSInAccountNo2' => array(
 			'title' 	=> '四大超商銷帳編號 (二萬到四萬(含)以下)',
 			'type' 		=> 'text',
-            'description' => '銷帳編號(二萬到四萬(含)以下)',
+            'description' => '銷帳編號(二萬到四萬(含)以下)  5碼或7碼',
 			'default' 	=> ''
 		),
 		'CSInAccountNo3' => array(
 			'title' 	=> '四大超商銷帳編號 (四萬到六萬(含)以下)',
 			'type' 		=> 'text',
-            'description' => '銷帳編號(四萬到六萬(含)以下)',
+            'description' => '銷帳編號(四萬到六萬(含)以下)  5碼或7碼',
 			'default' 	=> ''
 		),
 		'Terminal' => array(
