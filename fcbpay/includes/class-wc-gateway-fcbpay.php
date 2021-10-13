@@ -82,9 +82,6 @@ class WC_Gateway_FCBPay extends WC_Payment_Gateway
         add_action('woocommerce_update_options_payment_gateways_' . $this->id, array(&$this, 'process_admin_payment_options'));
 	
         $this->add_checkout_actions();
-		
-        # 訂單明細頁
-        add_action('woocommerce_admin_order_data_after_order_details', array($this, 'action_woocommerce_admin_order_status_cancel'));
     }
 
 
@@ -281,9 +278,12 @@ class WC_Gateway_FCBPay extends WC_Payment_Gateway
      */
     public function validate_fields()
     {
+		
+		//exit(var_dump($this));
         $choose_payment = sanitize_text_field($_POST['FCBpay_choose_payment']);
         $payment_desc = $this->get_payment_desc($choose_payment);
         if ($_POST['payment_method'] == $this->id && !empty($payment_desc)) {
+			$this -> title = $this -> title." - ".$payment_desc;
             $this->FCBpay_choose_payment = $choose_payment;
 			if (isset($_POST["BonusActionCode"])){
 				$this->BonusActionCode = sanitize_text_field($_POST['BonusActionCode']);
@@ -512,6 +512,11 @@ class WC_Gateway_FCBPay extends WC_Payment_Gateway
 
         return $payment_desc[$payment_name];
     }
+	
+	public function thankyou_page($orderId)
+    {
+        $this->payment_details( $OrderId );
+    }
 
     /**
      * Get payment details and place into a list format.
@@ -520,56 +525,11 @@ class WC_Gateway_FCBPay extends WC_Payment_Gateway
      */
     private function payment_details( $order_id = '' )
     {
-		exit("class-wc-gateway-fcbpay.php - WC_Gateway_FCBPay - payment_details");
-        $account_html = '';
+		$account_html = '';
         $has_details = false ;
         $a_has_details = array();
 
         $payment_method = get_post_meta($order_id, 'payment_method', true);
-
-        switch($payment_method) {
-            case TPay_PaymentMethod::CVS:
-                $PaymentNo = get_post_meta($order_id, 'PaymentNo', true);
-                $ExpireDate = get_post_meta($order_id, 'ExpireDate', true);
-
-                $a_has_details = array(
-                    'PaymentNo' => array(
-                                'label' => '繳款編號',
-                                'value' => $PaymentNo
-                            ),
-                    'ExpireDate' => array(
-                                'label' => '到期日',
-                                'value' => $ExpireDate
-                            )
-                );
-
-                $has_details = true ;
-                break;
-
-            case TPay_PaymentMethod::ATM:
-                $BankCode = get_post_meta($order_id, 'BankCode', true);
-                $vAccount = get_post_meta($order_id, 'vAccount', true);
-                $ExpireDate = get_post_meta($order_id, 'ExpireDate', true);
-
-                $a_has_details = array(
-                    'BankCode' => array(
-                                'label' => '銀行代號',
-                                'value' => $BankCode
-                            ),
-                    'vAccount' => array(
-                                'label' => '匯款帳號',
-                                'value' => $vAccount
-                            ),
-                    'ExpireDate' => array(
-                                'label' => '到期日',
-                                'value' => $ExpireDate
-                            )
-                );
-
-                $has_details = true ;
-                break;
-        }
-
         $account_html .= '<ul class="woocommerce-order-overview woocommerce-thankyou-order-details order_details">' . PHP_EOL;
 
         foreach($a_has_details as $field_key => $field ) {

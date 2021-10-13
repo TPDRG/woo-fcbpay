@@ -66,7 +66,7 @@ return apply_filters( 'FCBpay_payment_settings',
 			'title' 	=> '回傳網址',
 			'type' 		=> 'text',
             'description' => '資料回傳網址，可由電商收款通設定',
-			'default' 	=> ''
+			'default' 	=> 'http://wp.tpdrg.com:8888/checkout/order-received'
 		),
 		'InAccountNo' => array(
 			'title' 	=> '銷帳編號',
