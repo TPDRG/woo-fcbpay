@@ -34,8 +34,7 @@ return apply_filters( 'FCBpay_payment_settings',
             'desc_tip'    	=> true,
             'options'     	=> array(
                 'https://pay.firstbank.com.tw/PayServerOnline/OrderProcessOnline' =>'正式環境',
-                'https://tpay.firstbank.com.tw/PayServerOnline/OrderProcessOnline'=>'演練環境(測試用)',
-                'https://firstbank_api.tpdrg.com/OrderProcessOnline' =>'DEV',
+                'https://tpay.firstbank.com.tw/PayServerOnline/OrderProcessOnline'=>'演練環境(測試用)'
             )
         ),
 		'title' => array(

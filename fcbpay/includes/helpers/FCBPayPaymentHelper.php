@@ -129,8 +129,6 @@ class FCBPayPaymentHelper extends FCBPayPaymentModuleHelper
 			);
 			$this->sdk->SendExtend['ProductDetail'] =  "[".json_encode($Item)."]";	
 		}
-		//var_dump($inputs);
-		//echo("</br>");
         
 		
         // 針對支付種類加屬性

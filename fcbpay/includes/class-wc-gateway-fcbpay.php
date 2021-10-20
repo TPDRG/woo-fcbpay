@@ -156,6 +156,7 @@ class WC_Gateway_FCBPay extends WC_Payment_Gateway
 		// 宣告參數
         $payment_options = $data['payment_options'];
         $FCBpay_payment_methods = $data['FCBpay_payment_methods'];
+		$BoHtml = $this->BankOpt();
         // Html
         $szHtml  = '';
 
@@ -177,11 +178,11 @@ class WC_Gateway_FCBPay extends WC_Payment_Gateway
 						var subdiv = document.getElementById("subdiv");
 						if(v == "CREDIT_REWARD")
 						{
-							subdiv.innerHTML = "紅利折抵活動代碼 : <input type=\'text\' name=\'BonusActionCode\' ></input>";
+							subdiv.innerHTML = "<div style=\'margin:5px 10px 15px 20px\'>紅利折抵活動代碼 : <input type=\'text\' name=\'BonusActionCode\' ></input></div>";
 						}
 						else if(v == "IDP")
 						{
-							subdiv.innerHTML = "支出帳號 : <input type=\'text\' name=\'OutAccountNo\' ></input></br>轉出行代號 : <input type=\'text\' name=\'OutBank\' ></input></br>身分證字號 : <input type=\'text\' name=\'ID\' ></input>";
+							subdiv.innerHTML = "<div style=\'margin:5px 10px 15px 20px\'>身分證字號/統編 : <input type=\'text\' name=\'ID\' ></input></div><div style=\'margin:5px 10px 15px 20px\'>轉出銀行代號 : '.$BoHtml.'</div><div style=\'margin:5px 10px 15px 20px\'>轉出帳號 : <input type=\'text\' name=\'OutAccountNo\' ></input></div>";
 						}
 						else
 						{
@@ -197,16 +198,16 @@ class WC_Gateway_FCBPay extends WC_Payment_Gateway
     {
         // Html
         $szHtml  = '';
-		$szHtml .= '捐贈發票' . ' : ';
+		$szHtml .= '<div style=\'margin:5px 10px 15px 20px\'>捐贈發票' . ' : ';
 		$szHtml .= '<select id="DonateMark" name="DonateMark" onchange="DonateMarkchange(this)">';
         $szHtml .= '<option value="0" selected>不捐贈</option>';
 		$szHtml .= '<option value="1">捐贈</option>';
-        $szHtml .= '</select>';
+        $szHtml .= '</select></div>';
 		
 		$szHtml .= '<div id="Invoicediv">';
-		$szHtml .= '發票統編 : <input type=\'text\' name=\'Buyer_Identifier\' ></input><br />';
-		$szHtml .= '接收發票電子信箱 : <input type=\'text\' name=\'CUSTOMEREMAIL\' ></input><br />';
-		$szHtml .= '載具號碼 : <input type=\'text\' name=\'CarrierId1\' ></input><br />';
+		$szHtml .= '<div style=\'margin:5px 10px 15px 20px\'>發票統編 : <input type=\'text\' name=\'Buyer_Identifier\' ></input></div>';
+		$szHtml .= '<div style=\'margin:5px 10px 15px 20px\'>接收發票電子信箱 : <input type=\'text\' name=\'CUSTOMEREMAIL\' ></input></div>';
+		$szHtml .= '<div style=\'margin:5px 10px 15px 20px\'>載具號碼 : <input type=\'text\' name=\'CarrierId1\' ></input></div>';
 		$szHtml .= '</div>';
 		
 		$szHtml .= '<script>
@@ -216,11 +217,11 @@ class WC_Gateway_FCBPay extends WC_Payment_Gateway
 						var Invoicediv = document.getElementById("Invoicediv");
 						if(v == "0")
 						{
-							Invoicediv.innerHTML = "發票統編 : <input type=\'text\' name=\'Buyer_Identifier\' ></input><br />接收發票電子信箱 : <input type=\'text\' name=\'CUSTOMEREMAIL\' ></input><br />載具號碼 : <input type=\'text\' name=\'CarrierId1\' ></input><br />";
+							Invoicediv.innerHTML = "<div style=\'margin:5px 10px 15px 20px\'>發票統編 : <input type=\'text\' name=\'Buyer_Identifier\' ></input></div><div style=\'margin:5px 10px 15px 20px\'>接收發票電子信箱 : <input type=\'text\' name=\'CUSTOMEREMAIL\' ></input></div><div style=\'margin:5px 10px 15px 20px\'>載具號碼 : <input type=\'text\' name=\'CarrierId1\' ></input></div>";
 						}
 						else if(v == "1")
 						{
-							Invoicediv.innerHTML = "愛心碼 : <input type=\'text\' name=\'NPOBAN\' ></input><br />接收發票電子信箱 : <input type=\'text\' name=\'CUSTOMEREMAIL\' ></input><br />載具號碼 : <input type=\'text\' name=\'CarrierId1\' ></input><br />";
+							Invoicediv.innerHTML = "<div style=\'margin:5px 10px 15px 20px\'>愛心碼 : <input type=\'text\' name=\'NPOBAN\' ></input></div><div style=\'margin:5px 10px 15px 20px\'>接收發票電子信箱 : <input type=\'text\' name=\'CUSTOMEREMAIL\' ></input></div><div style=\'margin:5px 10px 15px 20px\'>載具號碼 : <input type=\'text\' name=\'CarrierId1\' ></input></div>";
 						}
 						else
 						{
@@ -231,6 +232,65 @@ class WC_Gateway_FCBPay extends WC_Payment_Gateway
 		
         return $szHtml;
     }
+	
+	public function BankOpt()
+	{
+		$BoHtml  = '<select name=\'OutBank\' >';
+		$BoHtml  .= '<option value=\'004\'>臺灣銀行</option>';
+		$BoHtml  .= '<option value=\'005\'>臺灣土地銀行</option>';
+		$BoHtml  .= '<option value=\'006\'>合作金庫商業銀行</option>';
+		$BoHtml  .= '<option value=\'007\'>第一商業銀行</option>';
+		$BoHtml  .= '<option value=\'008\'>華南商業銀行</option>';
+		$BoHtml  .= '<option value=\'009\'>彰化商業銀行</option>';
+		$BoHtml  .= '<option value=\'011\'>上海商業儲蓄銀行</option>';
+		$BoHtml  .= '<option value=\'012\'>台北富邦商業銀行</option>';
+		$BoHtml  .= '<option value=\'013\'>國泰世華商業銀行</option>';
+		$BoHtml  .= '<option value=\'016\'>高雄銀行</option>';
+		$BoHtml  .= '<option value=\'017\'>兆豐國際商業銀行</option>';
+		$BoHtml  .= '<option value=\'021\'>花旗(台灣)商業銀行</option>';
+		$BoHtml  .= '<option value=\'022\'>美國銀行台北分行</option>';
+		$BoHtml  .= '<option value=\'039\'>澳商澳盛銀行台北分行</option>';
+		$BoHtml  .= '<option value=\'048\'>王道商業銀行</option>';
+		$BoHtml  .= '<option value=\'050\'>台灣中小企業銀行</option>';
+		$BoHtml  .= '<option value=\'052\'>渣打國際商業銀行</option>';
+		$BoHtml  .= '<option value=\'053\'>台中商業銀行</option>';
+		$BoHtml  .= '<option value=\'054\'>京城商業銀行</option>';
+		$BoHtml  .= '<option value=\'081\'>匯豐(台灣)商業銀行</option>';
+		$BoHtml  .= '<option value=\'101\'>瑞興商業銀行</option>';
+		$BoHtml  .= '<option value=\'102\'>華泰商業銀行</option>';
+		$BoHtml  .= '<option value=\'103\'>臺灣新光商業銀行</option>';
+		$BoHtml  .= '<option value=\'108\'>陽信商業銀行</option>';
+		$BoHtml  .= '<option value=\'114\'>基隆第一信用合作社</option>';
+		$BoHtml  .= '<option value=\'115\'>基隆第二信用合作社</option>';
+		$BoHtml  .= '<option value=\'118\'>板信商業銀行</option>';
+		$BoHtml  .= '<option value=\'119\'>淡水第一信用合作社</option>';
+		$BoHtml  .= '<option value=\'130\'>新竹第一信用合作社</option>';
+		$BoHtml  .= '<option value=\'132\'>新竹第三信用合作社</option>';
+		$BoHtml  .= '<option value=\'146\'>台中市第二信用合作社</option>';
+		$BoHtml  .= '<option value=\'147\'>三信商業銀行</option>';
+		$BoHtml  .= '<option value=\'162\'>彰化第六信用合作社</option>';
+		$BoHtml  .= '<option value=\'204\'>高雄市第三信用合作社</option>';
+		$BoHtml  .= '<option value=\'215\'>花蓮第一信用合作社</option>';
+		$BoHtml  .= '<option value=\'216\'>花蓮第二信用合作社</option>';
+		$BoHtml  .= '<option value=\'600\'>農金資訊股份有限公司</option>';
+		$BoHtml  .= '<option value=\'700\'>中華郵政股份有限公司</option>';
+		$BoHtml  .= '<option value=\'803\'>聯邦商業銀行</option>';
+		$BoHtml  .= '<option value=\'805\'>遠東國際商業銀行</option>';
+		$BoHtml  .= '<option value=\'806\'>元大商業銀行</option>';
+		$BoHtml  .= '<option value=\'807\'>永豐商業銀行</option>';
+		$BoHtml  .= '<option value=\'808\'>玉山商業銀行</option>';
+		$BoHtml  .= '<option value=\'809\'>凱基商業銀行</option>';
+		$BoHtml  .= '<option value=\'810\'>星展(台灣)商業銀行</option>';
+		$BoHtml  .= '<option value=\'812\'>台新國際商業銀行</option>';
+		$BoHtml  .= '<option value=\'815\'>日盛國際商業銀行</option>';
+		$BoHtml  .= '<option value=\'816\'>安泰商業銀行</option>';
+		$BoHtml  .= '<option value=\'822\'>中國信託商業銀行</option>';
+		$BoHtml  .= '<option value=\'826\'>樂天國際商業銀行</option>';
+		$BoHtml  .= '<option value=\'952\'>財團法人農漁會南區資訊中心</option>';
+		$BoHtml  .= '<option value=\'997\'>中華民國信用合作社聯合社南區聯合資訊處理中心</option>';
+		$BoHtml  .= '</select>';
+		return $BoHtml;
+	}
     /**
      * 後台-付款方式區塊
      */
@@ -278,8 +338,6 @@ class WC_Gateway_FCBPay extends WC_Payment_Gateway
      */
     public function validate_fields()
     {
-		
-		//exit(var_dump($this));
         $choose_payment = sanitize_text_field($_POST['FCBpay_choose_payment']);
         $payment_desc = $this->get_payment_desc($choose_payment);
         if ($_POST['payment_method'] == $this->id && !empty($payment_desc)) {
