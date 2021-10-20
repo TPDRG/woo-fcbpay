@@ -85,6 +85,7 @@ class FCBPaySDK {
 
     function __construct() {
 
+		$Version = 'V1';
         $this->PaymentType = 'aio';
         $this->Send = array(
 			"PlatFormId"        => '',
@@ -92,7 +93,7 @@ class FCBPaySDK {
 			'OrderId'			=> '',
 			"Amount"       		=> '',
 			"ShippingFee"		=> 0,
-            "ProductName"       => 'WC訂單',
+            "ProductName"       => 'WC訂單'.$Version,
             "PayTitle"     		=> 'WCFCBPay',
             "ClientIP"    		=> '127.0.0.1',
             "TimeZone" 		    => '+0800',
