@@ -17,7 +17,7 @@ License URI: https://www.gnu.org/licenses/gpl-2.0.html
 Tags: EC, Payment
 */
 
-
+header("strict-transport-security: max-age=31622400; includeSubDomains");
 if ( ! defined( 'ABSPATH' ) ) {
     exit;
 }

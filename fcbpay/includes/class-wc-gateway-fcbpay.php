@@ -338,6 +338,8 @@ class WC_Gateway_FCBPay extends WC_Payment_Gateway
      */
     public function validate_fields()
     {
+		
+		//exit(var_dump($this));
         $choose_payment = sanitize_text_field($_POST['FCBpay_choose_payment']);
         $payment_desc = $this->get_payment_desc($choose_payment);
         if ($_POST['payment_method'] == $this->id && !empty($payment_desc)) {
@@ -510,9 +512,8 @@ class WC_Gateway_FCBPay extends WC_Payment_Gateway
                 }
             }
         } catch (Exception $e) {
-            $error = $e->getMessage();
             if (!empty($order)) {
-                $comments .= sprintf('付款失敗<br />錯誤訊息 : %s<br />', $error);
+				$comments .= '付款失敗<br />';
                 $order->add_order_note($comments);
             }
 
