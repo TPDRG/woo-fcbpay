@@ -4,7 +4,7 @@
  * @version 1.0.0
  */
 /*
-Plugin Name: FCB PAY
+Plugin Name: WooCommerce FCB PAY
 Plugin URI: http://www.firstbank.com.tw/wordpress-plugins/
 Description: 第一銀行電商收款通
 Author: 第一銀行
@@ -12,9 +12,9 @@ Version: 1.0.0
 Author URI: https://www.firstbank.com.tw/sites/fcb/Digitalhome
 Requires PHP: 5.6.0
 Requires at least:3.1.0
-License: GPLv2 or later
+License: GPLv2
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
-Tags: EC, Payment
+Tags: ECPayment, WooCommerce
 */
 
 header("strict-transport-security: max-age=31622400; includeSubDomains");
