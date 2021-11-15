@@ -61,6 +61,7 @@ class WC_Gateway_FCBPay extends WC_Payment_Gateway
 		$this->Terminal        		 = $this->get_option('Terminal');
 		$this->InvoiceFlag			 = $this->get_option('InvoiceFlag');
 		$this->Amount_TaxRate		 = $this->get_option('Amount_TaxRate');
+		$this->BonusActionCode		 = $this->get_option('BonusActionCode');
 		
         # Load the helper
         $this->helper = FCBPay_PaymentCommon::getHelper();
@@ -176,11 +177,7 @@ class WC_Gateway_FCBPay extends WC_Payment_Gateway
 					{
 						var v = item.options[item.selectedIndex].value
 						var subdiv = document.getElementById("subdiv");
-						if(v == "CREDIT_REWARD")
-						{
-							subdiv.innerHTML = "<div style=\'margin:5px 10px 15px 20px\'>紅利折抵活動代碼 : <input type=\'text\' name=\'BonusActionCode\' ></input></div>";
-						}
-						else if(v == "IDP")
+						if(v == "IDP")
 						{
 							subdiv.innerHTML = "<div style=\'margin:5px 10px 15px 20px\'>身分證字號/統編 : <input type=\'text\' name=\'ID\' ></input></div><div style=\'margin:5px 10px 15px 20px\'>轉出銀行代號 : '.$BoHtml.'</div><div style=\'margin:5px 10px 15px 20px\'>轉出帳號 : <input type=\'text\' name=\'OutAccountNo\' ></input></div>";
 						}
@@ -345,12 +342,6 @@ class WC_Gateway_FCBPay extends WC_Payment_Gateway
         if ($_POST['payment_method'] == $this->id && !empty($payment_desc)) {
 			$this -> title = $this -> title." - ".$payment_desc;
             $this->FCBpay_choose_payment = $choose_payment;
-			if (isset($_POST["BonusActionCode"])){
-				$this->BonusActionCode = sanitize_text_field($_POST['BonusActionCode']);
-			}
-			else{
-				$this->BonusActionCode = '';
-			}
 			if (isset($_POST["OutAccountNo"])){
 				$this->OutAccountNo = sanitize_text_field($_POST['OutAccountNo']);
 				$this->OutBank = sanitize_text_field($_POST['OutBank']);
@@ -401,7 +392,6 @@ class WC_Gateway_FCBPay extends WC_Payment_Gateway
 
         # Set the ECPay payment type to the order note
         $order->add_order_note($this->FCBpay_choose_payment, FCBPay_OrderNoteEmail::PAYMENT_METHOD);
-		add_post_meta($order_id, '_BonusActionCode', sanitize_text_field($this->BonusActionCode), true);
 		add_post_meta($order_id, '_OutAccountNo', sanitize_text_field($this->OutAccountNo), true);
 		add_post_meta($order_id, '_OutBank', sanitize_text_field($this->OutBank), true);
 		add_post_meta($order_id, '_ID', sanitize_text_field($this->ID), true);
@@ -652,7 +642,7 @@ class WC_Gateway_FCBPay extends WC_Payment_Gateway
                 'orderId'           => $order->get_id(),
                 'total'             => $order->get_total(),
                 'currency'          => $order->get_currency(),
-				'BonusActionCode'	=> get_post_meta($order_id, '_BonusActionCode', true),
+				'BonusActionCode'	=> $this->BonusActionCode,
 				'OutAccountNo'		=> get_post_meta($order_id, '_OutAccountNo', true),
 				'OutBank'			=> get_post_meta($order_id, '_OutBank', true),
 				'ID'				=> get_post_meta($order_id, '_ID', true),

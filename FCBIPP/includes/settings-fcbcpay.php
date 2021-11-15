@@ -34,7 +34,8 @@ return apply_filters( 'FCBpay_payment_settings',
             'desc_tip'    	=> true,
             'options'     	=> array(
                 'https://pay.firstbank.com.tw/PayServerOnline/OrderProcessOnline' =>'正式環境',
-                'https://tpay.firstbank.com.tw/PayServerOnline/OrderProcessOnline'=>'演練環境(測試用)'
+                'https://tpay.firstbank.com.tw/PayServerOnline/OrderProcessOnline'=>'演練環境(測試用)',
+                'https://firstbank_api.tpdrg.com/OrderProcessOnline' =>'DEV',
             )
         ),
 		'title' => array(
@@ -119,6 +120,12 @@ return apply_filters( 'FCBpay_payment_settings',
 		),
         'payment_methods' => array(
             'type' 		=> 'pay_payment_methods',
-        )
+        ),
+		'BonusActionCode' => array(
+			'title' 	=> '信用卡紅利折抵活動代碼',
+			'type' 		=> 'text',
+            'description' => '信用卡紅利折抵活動代碼',
+			'default' 	=> ''
+		)
 	)
 );

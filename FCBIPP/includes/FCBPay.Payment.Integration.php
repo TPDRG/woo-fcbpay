@@ -82,10 +82,10 @@ class FCBPaySDK {
     public $PaymentType = 'PaymentType';
     public $Send = 'Send';
     public $SendExtend = 'SendExtend';
-
+	
+	
     function __construct() {
-
-		$Version = 'V1';
+		$Version = 'V2';
         $this->PaymentType = 'aio';
         $this->Send = array(
 			"PlatFormId"        => '',
@@ -241,10 +241,12 @@ class Pay_Send extends Pay_Aio
 			}	
 		}
 		uksort( $paras, 'strnatcasecmp' );
+		//var_dump(urldecode($Parameters['hashK'].http_build_query($paras)));
 		$HashKey = strtoupper(hash('sha256', urldecode($Parameters['hashK'].http_build_query($paras))));
 		$Resultparas['HashKey'] = $HashKey;
 		if($Resultparas['PayType'] == "REG")
 			$Resultparas['FromPayPage'] = "1";
+		//var_dump($Resultparas);
         return $Resultparas;
     }
 }
