@@ -118,14 +118,30 @@ return apply_filters( 'FCBpay_payment_settings',
             'description' => '微信終端編號',
 			'default' 	=> ''
 		),
-        'payment_methods' => array(
-            'type' 		=> 'pay_payment_methods',
-        ),
 		'BonusActionCode' => array(
 			'title' 	=> '信用卡紅利折抵活動代碼',
 			'type' 		=> 'text',
             'description' => '信用卡紅利折抵活動代碼',
 			'default' 	=> ''
-		)
+		),
+		'CustomResultPage' => array(
+			'title' 	=> '信用卡結果顯示頁模式',
+            'label'       	=> '信用卡結果顯示頁模式',
+            'type'        	=> 'select',
+            'description' 	=> '0',
+            'options'     	=> array(
+                '0' =>'以財金模板顯示付款結果(無法導回頁面)',
+                '2' =>'以電商收款通模板顯示付款結果(可透過導回頁面)'
+            )
+		),
+		'CustomResURL' => array(
+			'title' 	=> '電商收款通模板導回網址',
+			'type' 		=> 'text',
+            'description' => '於電商收款通模板頁面點擊回到商城導回網址',
+			'default' 	=> ''
+		),
+        'payment_methods' => array(
+            'type' 		=> 'pay_payment_methods',
+        )
 	)
 );

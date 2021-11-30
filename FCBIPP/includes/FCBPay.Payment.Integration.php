@@ -85,7 +85,7 @@ class FCBPaySDK {
 	
 	
     function __construct() {
-		$Version = 'V2';
+		$Version = 'V3';
         $this->PaymentType = 'aio';
         $this->Send = array(
 			"PlatFormId"        => '',

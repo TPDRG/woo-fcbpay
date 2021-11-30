@@ -129,6 +129,8 @@ class FCBPayPaymentHelper extends FCBPayPaymentModuleHelper
 			);
 			$this->sdk->SendExtend['ProductDetail'] =  "[".json_encode($Item)."]";	
 		}
+		//var_dump($inputs);
+		//echo("</br>");
         
 		
         // 針對支付種類加屬性
@@ -137,6 +139,9 @@ class FCBPayPaymentHelper extends FCBPayPaymentModuleHelper
             case "CREDIT":
 				$this->sdk->SendExtend['TransType'] = '1';
 				$this->sdk->SendExtend['TimeoutSecs'] = '60';
+				$this->sdk->Send['CustomResultPage'] = $inputs['CustomResultPage'];
+				if($inputs['CustomResultPage'] == "2")
+					$this->sdk->Send['ResURL'] = $inputs['CustomResURL'];
 				break;
 			case "CREDIT_3":
 			case "CREDIT_6":
@@ -150,12 +155,18 @@ class FCBPayPaymentHelper extends FCBPayPaymentModuleHelper
 				$this->sdk->SendExtend['PeriodNum'] = str_replace("CREDIT_","",$this->sdk->Send['PayType']);
 				$this->sdk->SendExtend['TimeoutSecs'] = '60';
 				$this->sdk->Send['PayType'] = 'CREDIT';
+				$this->sdk->Send['CustomResultPage'] = $inputs['CustomResultPage'];
+				if($inputs['CustomResultPage'] == "2")
+					$this->sdk->Send['ResURL'] = $inputs['CustomResURL'];
 				break;
 			case "CREDIT_REWARD":
 				$this->sdk->SendExtend['TransType'] = '3';
 				$this->sdk->SendExtend['BonusActionCode'] = $inputs['BonusActionCode'];
 				$this->sdk->SendExtend['TimeoutSecs'] = '60';
 				$this->sdk->Send['PayType'] = 'CREDIT';
+				$this->sdk->Send['CustomResultPage'] = $inputs['CustomResultPage'];
+				if($inputs['CustomResultPage'] == "2")
+					$this->sdk->Send['ResURL'] = $inputs['CustomResURL'];
                 break;
             case 'CS':
 				if($this->getAmount($inputs['total']) > 60000)

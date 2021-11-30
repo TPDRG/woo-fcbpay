@@ -62,6 +62,8 @@ class WC_Gateway_FCBPay extends WC_Payment_Gateway
 		$this->InvoiceFlag			 = $this->get_option('InvoiceFlag');
 		$this->Amount_TaxRate		 = $this->get_option('Amount_TaxRate');
 		$this->BonusActionCode		 = $this->get_option('BonusActionCode');
+		$this->CustomResultPage		 = $this->get_option('CustomResultPage');
+		$this->CustomResURL		 	 = $this->get_option('CustomResURL');
 		
         # Load the helper
         $this->helper = FCBPay_PaymentCommon::getHelper();
@@ -652,7 +654,9 @@ class WC_Gateway_FCBPay extends WC_Payment_Gateway
 				'Buyer_Identifier'	=> get_post_meta($order_id, '_Buyer_Identifier', true),
 				'NPOBAN'			=> get_post_meta($order_id, '_NPOBAN', true),
 				'InvoiceFlag'		=> $this->InvoiceFlag,
-				'Amount_TaxRate'	=> $this->Amount_TaxRate
+				'Amount_TaxRate'	=> $this->Amount_TaxRate,
+				'CustomResultPage'	=> $this->CustomResultPage,
+				'CustomResURL'		=> $this->CustomResURL
             );
             $this->helper->checkout($data);
             exit;
